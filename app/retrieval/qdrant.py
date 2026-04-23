@@ -14,7 +14,15 @@ from app.api.schemas.openai import ChatMessage, RetrievalDocument, RetrievedCont
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_TOP_K = 5
+DEFAULT_SEARCH_LIMIT = 12
+DEFAULT_SCORE_THRESHOLD = 0.2
+DEFAULT_CONTEXT_MAX_CHARS = 12000
+DEFAULT_ENABLE_KEYWORD_RERANK = True
 WORD_PATTERN = re.compile(r"\w+", re.UNICODE)
+DEFAULT_PAYLOAD_TEXT_KEYS = ("text", "content", "chunk", "page_content")
 DEFAULT_SEARCH_SOURCES = (
     {
         "id": "devices",
@@ -23,13 +31,14 @@ DEFAULT_SEARCH_SOURCES = (
         "collection": "devices",
         "vector_name": None,
     },
+    {
+        "id": "employees",
+        "name": "Employees",
+        "description": "Información sobre los empreados de la empresa y su contacto corporativo, como correo electónico, teléfono y extensión.",
+        "collection": "employees",
+        "vector_name": None,
+    },
 )
-DEFAULT_SEARCH_LIMIT = 12
-DEFAULT_TOP_K = 5
-DEFAULT_SCORE_THRESHOLD = 0.2
-DEFAULT_PAYLOAD_TEXT_KEYS = ("text", "content", "chunk", "page_content")
-DEFAULT_ENABLE_KEYWORD_RERANK = True
-DEFAULT_CONTEXT_MAX_CHARS = 12000
 
 
 @dataclass(frozen=True)
