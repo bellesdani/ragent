@@ -1,33 +1,27 @@
 from __future__ import annotations
 
-import re
-import math
 import logging
+
 from typing import Any
-from collections import Counter
 from dataclasses import dataclass
 from app.config.config import Settings
 from qdrant_client import AsyncQdrantClient
-from app.retrieval.base import BaseRetriever
 from app.llm.openai_compat import OpenAICompatClient
+from app.retrieval.base import BaseRetriever
 from app.api.schemas.openai import ChatMessage, RetrievalDocument, RetrievedContext
 
 
 logger = logging.getLogger(__name__)
 
-
-DEFAULT_TOP_K = 5
-DEFAULT_SEARCH_LIMIT = 12
-DEFAULT_SCORE_THRESHOLD = 0.2
+DEFAULT_TOP_K = 15
+DEFAULT_SCORE_THRESHOLD = 0.5
 DEFAULT_CONTEXT_MAX_CHARS = 12000
-DEFAULT_ENABLE_KEYWORD_RERANK = True
-WORD_PATTERN = re.compile(r"\w+", re.UNICODE)
 DEFAULT_PAYLOAD_TEXT_KEYS = ("text", "content", "chunk", "page_content")
 DEFAULT_SEARCH_SOURCES = (
     {
         "id": "devices",
         "name": "Devices",
-        "description": "Información sobre los dispostivos de la empresa, tales como servidores, equipos de usuarios, etc.",
+        "description": "Información sobre los dispostivos de la empresa, tales como servidores y equipos de usuarios y de la planta.",
         "collection": "devices",
         "vector_name": None,
     },
@@ -87,7 +81,7 @@ class QdrantRetriever(BaseRetriever):
             search_kwargs: dict[str, Any] = {
                 "collection_name": source.collection,
                 "query": query_vector,
-                "limit": DEFAULT_SEARCH_LIMIT,
+                "limit": DEFAULT_TOP_K,
                 "with_payload": True,
                 "score_threshold": DEFAULT_SCORE_THRESHOLD,
             }
@@ -97,8 +91,6 @@ class QdrantRetriever(BaseRetriever):
             points = results.points if hasattr(results, "points") else []
             logger.debug("Qdrant source response | source_id=%s points_found=%d", source.id, len(points))
             documents.extend(self._point_to_document(point, source) for point in points)
-        if DEFAULT_ENABLE_KEYWORD_RERANK:
-            documents = self._keyword_rerank(rewritten_query, documents)
         documents = self._trim_context(documents[:DEFAULT_TOP_K])
         logger.debug(
             "Retrieval completed | documents=%d documents_preview=%s",
@@ -158,19 +150,6 @@ class QdrantRetriever(BaseRetriever):
                 return value.strip()
         return ""
 
-    def _keyword_rerank(self, query: str, documents: list[RetrievalDocument]) -> list[RetrievalDocument]:
-        query_terms = self._term_counts(query)
-        if not query_terms:
-            return documents
-        scored = []
-        for doc in documents:
-            doc_terms = self._term_counts(doc.text)
-            lexical_score = self._cosine_similarity(query_terms, doc_terms)
-            combined_score = (doc.score * 0.8) + (lexical_score * 0.2)
-            scored.append((combined_score, doc))
-        scored.sort(key=lambda item: item[0], reverse=True)
-        return [doc for _, doc in scored]
-
     def _trim_context(self, documents: list[RetrievalDocument]) -> list[RetrievalDocument]:
         current_size = 0
         trimmed: list[RetrievalDocument] = []
@@ -183,18 +162,6 @@ class QdrantRetriever(BaseRetriever):
             trimmed.append(doc)
             current_size = next_size
         return trimmed
-
-    def _term_counts(self, text: str) -> Counter[str]:
-        return Counter(token.lower() for token in WORD_PATTERN.findall(text))
-
-    def _cosine_similarity(self, left: Counter[str], right: Counter[str]) -> float:
-        intersection = set(left) & set(right)
-        numerator = sum(left[term] * right[term] for term in intersection)
-        left_norm = math.sqrt(sum(value * value for value in left.values()))
-        right_norm = math.sqrt(sum(value * value for value in right.values()))
-        if not left_norm or not right_norm:
-            return 0.0
-        return numerator / (left_norm * right_norm)
 
     def _resolve_sources(self, source_ids: list[str] | None) -> list[KnowledgeSource]:
         if not source_ids:

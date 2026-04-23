@@ -6,7 +6,7 @@ import logging
 
 from typing import Any
 from collections.abc import AsyncIterator
-from app.api.schemas.openai import ChatCompletionUsage, LLMChatResult, LLMToolCall, LLMToolFunction, ModelCard
+from app.api.schemas.openai import ChatCompletionUsage, LLMChatResult, ModelCard
 
 
 logger = logging.getLogger(__name__)
@@ -30,8 +30,6 @@ class OpenAICompatClient:
         messages: list[dict[str, Any]],
         temperature: float,
         max_tokens: int,
-        tools: list[dict[str, Any]] | None = None,
-        tool_choice: str | dict[str, Any] | None = None,
     ) -> LLMChatResult:
         payload = {
             "model": model,
@@ -40,17 +38,11 @@ class OpenAICompatClient:
             "max_tokens": max_tokens,
             "stream": False,
         }
-        if tools:
-            payload["tools"] = tools
-        if tool_choice is not None:
-            payload["tool_choice"] = tool_choice
         logger.debug(
-            "Sending chat completion request | provider=%s model=%s messages=%d tools=%s tool_choice=%s",
+            "Sending chat completion request | provider=%s model=%s messages=%d",
             self.provider,
             model,
             len(messages),
-            bool(tools),
-            tool_choice,
         )
         response = await self.client.post("chat/completions", json=payload)
         response.raise_for_status()
@@ -58,13 +50,12 @@ class OpenAICompatClient:
         message = data["choices"][0]["message"]
         normalized_content = self._normalize_content(message.get("content"))
         logger.debug(
-            "Received chat completion response | provider=%s model=%s has_content=%s tool_calls=%d",
+            "Received chat completion response | provider=%s model=%s has_content=%s",
             self.provider,
             model,
             bool(normalized_content),
-            len(message.get("tool_calls", [])),
         )
-        if not normalized_content and not message.get("tool_calls"):
+        if not normalized_content:
             logger.warning(
                 "Provider returned chat completion without content | provider=%s model=%s raw_message=%s",
                 self.provider,
@@ -79,17 +70,6 @@ class OpenAICompatClient:
                 completion_tokens=int(usage.get("completion_tokens", 0)),
                 total_tokens=int(usage.get("total_tokens", 0)),
             ),
-            tool_calls=[
-                LLMToolCall(
-                    id=item["id"],
-                    type=item.get("type", "function"),
-                    function=LLMToolFunction(
-                        name=item["function"]["name"],
-                        arguments=item["function"]["arguments"],
-                    ),
-                )
-                for item in message.get("tool_calls", [])
-            ],
         )
 
     async def stream_chat_completion(

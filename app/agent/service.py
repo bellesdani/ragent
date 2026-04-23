@@ -47,7 +47,7 @@ class ChatAgentService:
         self.retriever = retriever
         self.llm_client = llm_client
         self.agent_catalog = agent_catalog
-        self.retrieval_planner = RetrievalPlanner(llm_client=llm_client, retriever=retriever, settings=settings)
+        self.retrieval_planner = RetrievalPlanner(llm_client=llm_client, retriever=retriever)
 
     async def create_chat_completion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
         prepared = await self._prepare_agent_completion(request)

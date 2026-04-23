@@ -5,7 +5,6 @@ import logging
 
 from typing import Any
 from dataclasses import dataclass
-from app.config.config import Settings
 from app.retrieval.base import BaseRetriever
 from app.agent.catalog import AgentDefinition
 from app.llm.openai_compat import OpenAICompatClient
@@ -25,10 +24,9 @@ class PlannerDecision:
 
 
 class RetrievalPlanner:
-    def __init__(self, llm_client: OpenAICompatClient, retriever: BaseRetriever, settings: Settings) -> None:
+    def __init__(self, llm_client: OpenAICompatClient, retriever: BaseRetriever) -> None:
         self.llm_client = llm_client
         self.retriever = retriever
-        self.settings = settings
 
     async def plan(self, agent: AgentDefinition, messages: list[ChatMessage]) -> PlannerDecision:
         planner_messages = self._build_planner_messages(agent, messages)
