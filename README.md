@@ -1,52 +1,50 @@
 # RAGent
 
-Servicio backend en Python para exponer endpoints compatibles con OpenAI (`/v1/models` y `/v1/chat/completions`) y actuar como una capa de agentes entre Open WebUI y los proveedores reales de IA. Open WebUI ve agentes publicados por este servicio; la resolución del modelo backend, el RAG y las futuras herramientas quedan encapsuladas aquí.
+Servicio backend en Python para exponer endpoints compatibles con OpenAI (`/v1/models` y `/v1/chat/completions`) y actuar como una capa de agentes entre Open WebUI y los proveedores reales de IA.
+
+## Idea central
+
+Open WebUI no habla directamente con los modelos backend. Habla con agentes publicados por esta API.
+
+- `Quipi`: agente principal con un planner interno que decide si consulta conocimiento corporativo en Qdrant o responde directamente.
+- `Base`: agente simple sin RAG, util para validar conectividad, paso de historial y respuestas del modelo.
+
+`CHAT_MODEL` es interno al servicio. El campo `model` que ve Open WebUI representa el agente publico.
 
 ## Estructura
 
 ```text
 app/
+  agent/
   api/
     routes/
     schemas/
-  agent/
-  core/
+  config/
   llm/
   retrieval/
 ```
 
-## Decisiones técnicas
+## Decisiones tecnicas
 
-- `FastAPI` para exponer la API y facilitar compatibilidad con Open WebUI.
-- Catálogo de agentes propio: la API publica agentes como `quipi` y `ejemplo`; no expone directamente los modelos backend del proveedor.
-- Cliente OpenAI-compatible propio sobre `httpx` para evitar acoplar el núcleo a LangChain y separar proveedor/modelo de chat y embeddings.
-- Capa `retrieval` desacoplada mediante interfaz base para poder sustituir Qdrant o la estrategia RAG.
-- Búsqueda híbrida ligera: recuperación vectorial en Qdrant y reranking keyword local para no exigir nuevas piezas de indexación.
-- Configuración contenida: el `.env` queda reservado a infraestructura y conectividad; identidad del agente, prompt y estrategia de retrieval quedan en código por ahora.
+- `FastAPI` para la API y compatibilidad con Open WebUI.
+- Cliente OpenAI-compatible propio sobre `httpx`, sin acoplamiento a LangChain.
+- Planner interno para `Quipi`, implementado en codigo propio con salida JSON estructurada.
+- Capa `retrieval` desacoplada mediante interfaz base para permitir sustituir la estrategia RAG.
+- Configuracion contenida: el `.env` queda reservado a conectividad y credenciales; agentes y parametros de retrieval viven en codigo por ahora.
 
-## Modelo Mental
+## Funcionamiento de Quipi
 
-La API no está pensada para reenviar modelos del proveedor a Open WebUI, sino para publicar agentes propios.
+`Quipi` hace una primera llamada al modelo para planificar la respuesta.
 
-- Open WebUI consume `/v1/models` y ve identificadores de agente como `quipi` y `ejemplo`.
-- Cuando Open WebUI envía `model=<agent_id>` a `/v1/chat/completions`, este servicio resuelve internamente qué modelo backend usar, qué retrieval aplicar y qué prompt o herramientas asociar.
-- `CHAT_MODEL` es interno y pertenece al proveedor configurado.
-- `quipi` es el agente RAG principal.
-- `ejemplo` es un agente básico de prueba sin RAG para validar conectividad y memoria conversacional.
+- Si el planner decide que no necesita buscar, responde directamente.
+- Si el planner decide que si necesita contexto, el backend consulta Qdrant en una o varias fuentes.
+- Despues se hace una segunda llamada al modelo con el contexto recuperado para redactar la respuesta final.
 
-Con este enfoque, hoy puedes publicar `Quipi` como agente RAG sobre Qdrant y vLLM y `Ejemplo` como smoke test del pipeline, y mañana añadir otros agentes con distinto conocimiento, distinto proveedor o distintas herramientas sin cambiar la integración con Open WebUI.
+El planner no usa `tool calling` nativo del modelo. La decision de buscar o no, y en que fuentes hacerlo, se toma con una salida JSON controlada por el backend. La razon es practica: en este despliegue el modelo puede razonar que debe usar herramientas, pero no siempre materializa `tool_calls` validos en formato OpenAI-compatible.
 
-## Puesta en marcha local
+## Configuracion
 
-1. Crear entorno e instalar dependencias:
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-2. Crear `.env` a partir de `.env.example` y ajustar:
+Crear `.env` a partir de `.env.example` y ajustar:
 
 - `QDRANT_URL`
 - `CHAT_PROVIDER`
@@ -55,81 +53,74 @@ pip install -r requirements.txt
 - `EMBEDDING_PROVIDER`
 - `EMBEDDING_BASE_URL`
 - `EMBEDDING_MODEL`
-- claves/API keys necesarias
+- claves o API keys necesarias
 
-Si falta `.env` o no están definidas las variables obligatorias, la aplicación falla al arrancar. La validación se hace en la carga de configuración para evitar que el servicio quede levantado con una configuración inválida.
+Si falta una variable obligatoria, la aplicacion falla al arrancar.
 
-Por ahora, `Quipi`, `Ejemplo`, sus prompts del sistema y los parámetros de retrieval de Qdrant están definidos en código. El `.env` solo contiene conectividad con proveedores y servicios externos.
-
-3. Lanzar la API:
+## Arranque local
 
 ```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Despliegue con Docker
+## Docker
 
-Se han dejado dos ficheros `compose` independientes:
+Hay dos `compose` independientes:
 
-- [docker-compose.local.yml](C:/Users/informatica1/Repositorios/ragent/docker-compose.local.yml:1): pensado para desarrollo o despliegue local, con publicación de puertos y `healthcheck`.
-- [docker-compose.yml](C:/Users/informatica1/Repositorios/ragent/docker-compose.yml:1): base de despliegue más cercana a producción.
+- [docker-compose.local.yml](C:/Users/informatica1/Repositorios/ragent/docker-compose.local.yml:1): pensado para local, con puertos y `healthcheck`.
+- [docker-compose.yml](C:/Users/informatica1/Repositorios/ragent/docker-compose.yml:1): despliegue base.
 
-Ambos inyectan configuración mediante `environment:`. No se pasa `.env` al contenedor. Los valores pueden venir del entorno de la máquina o del mecanismo de sustitución de variables de Docker Compose.
-
-1. Definir en tu shell o en el entorno de Docker Compose las variables necesarias.
-
-2. Construir y arrancar en local:
+Ejemplo local:
 
 ```powershell
 docker compose -f docker-compose.local.yml up --build -d
-```
-
-3. Ver logs:
-
-```powershell
 docker compose -f docker-compose.local.yml logs -f ragent
-```
-
-4. Parar el servicio:
-
-```powershell
 docker compose -f docker-compose.local.yml down
 ```
 
-Para producción puedes arrancar directamente con `docker-compose.yml` o crear tu propia variante aparte para proxy, red, labels y políticas específicas.
+## Ejemplos
 
-## Ejemplo de llamada
+Descubrir agentes:
 
 ```bash
 curl http://localhost:8000/v1/models
 ```
 
-```bash
-curl -X POST http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "quipi",
-    "messages": [
-      {"role": "user", "content": "¿Cuál es la política de vacaciones?"}
-    ]
-  }'
-```
+Usar `Quipi`:
 
 ```bash
 curl -X POST http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "ejemplo",
+    "model": "Quipi",
     "messages": [
-      {"role": "user", "content": "Hola, recuérdame luego que esto es una prueba de conectividad."}
+      {"role": "user", "content": "Cual es la politica de vacaciones?"}
     ]
   }'
 ```
 
-## Integración con Qdrant
+Usar `Base`:
 
-El retriever usa embeddings vía `POST /v1/embeddings` contra el proveedor configurado en `EMBEDDING_BASE_URL` y después consulta Qdrant con `query_points`. La colección, las claves de texto del payload, el límite de búsqueda, el reranking keyword y el recorte de contexto están definidos en código en esta versión.
+```bash
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Base",
+    "messages": [
+      {"role": "user", "content": "Hola, recuerdame luego que esto es una prueba de conectividad."}
+    ]
+  }'
+```
+
+## Integracion con Qdrant
+
+El retriever usa embeddings via `POST /v1/embeddings` contra el proveedor configurado en `EMBEDDING_BASE_URL` y despues consulta Qdrant con `query_points`.
+
+En esta version, las fuentes de conocimiento disponibles, sus colecciones, las claves de texto del payload y los parametros de retrieval estan definidos en codigo.
 
 ## Streaming
 
-El endpoint acepta `"stream": true` y responde como `text/event-stream` con chunks SSE en formato OpenAI-compatible básico.
+El endpoint acepta `"stream": true` y responde como `text/event-stream` con chunks SSE en formato OpenAI-compatible basico.

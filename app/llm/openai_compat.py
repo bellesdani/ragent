@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import httpx
+import json
+import logging
 
 from typing import Any
-from app.api.schemas.openai import ChatCompletionUsage, LLMChatResult, ModelCard
+from app.api.schemas.openai import ChatCompletionUsage, LLMChatResult, LLMToolCall, LLMToolFunction, ModelCard
+
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAICompatClient:
@@ -21,9 +26,11 @@ class OpenAICompatClient:
     async def create_chat_completion(
         self,
         model: str,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float,
         max_tokens: int,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> LLMChatResult:
         payload = {
             "model": model,
@@ -32,25 +39,107 @@ class OpenAICompatClient:
             "max_tokens": max_tokens,
             "stream": False,
         }
+        if tools:
+            payload["tools"] = tools
+        if tool_choice is not None:
+            payload["tool_choice"] = tool_choice
+        logger.debug(
+            "Sending chat completion request | provider=%s model=%s messages=%d tools=%s tool_choice=%s",
+            self.provider,
+            model,
+            len(messages),
+            bool(tools),
+            tool_choice,
+        )
         response = await self.client.post("chat/completions", json=payload)
         response.raise_for_status()
         data = response.json()
-        choice = data["choices"][0]["message"]["content"]
+        message = data["choices"][0]["message"]
+        normalized_content = self._normalize_content(message.get("content"))
+        logger.debug(
+            "Received chat completion response | provider=%s model=%s has_content=%s tool_calls=%d",
+            self.provider,
+            model,
+            bool(normalized_content),
+            len(message.get("tool_calls", [])),
+        )
+        if not normalized_content and not message.get("tool_calls"):
+            logger.warning(
+                "Provider returned chat completion without content | provider=%s model=%s raw_message=%s",
+                self.provider,
+                model,
+                json.dumps(message, ensure_ascii=False, default=str),
+            )
         usage = data.get("usage") or {}
         return LLMChatResult(
-            content=choice,
+            content=normalized_content,
             usage=ChatCompletionUsage(
                 prompt_tokens=int(usage.get("prompt_tokens", 0)),
                 completion_tokens=int(usage.get("completion_tokens", 0)),
                 total_tokens=int(usage.get("total_tokens", 0)),
             ),
+            tool_calls=[
+                LLMToolCall(
+                    id=item["id"],
+                    type=item.get("type", "function"),
+                    function=LLMToolFunction(
+                        name=item["function"]["name"],
+                        arguments=item["function"]["arguments"],
+                    ),
+                )
+                for item in message.get("tool_calls", [])
+            ],
         )
+
+    def _normalize_content(self, content: Any) -> str | None:
+        if content is None:
+            return None
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            fragments: list[str] = []
+            for item in content:
+                if isinstance(item, str):
+                    fragments.append(item)
+                    continue
+                if not isinstance(item, dict):
+                    continue
+                if item.get("type") == "text":
+                    text_value = item.get("text")
+                    if isinstance(text_value, str):
+                        fragments.append(text_value)
+                    elif isinstance(text_value, dict) and isinstance(text_value.get("value"), str):
+                        fragments.append(text_value["value"])
+                elif isinstance(item.get("content"), str):
+                    fragments.append(item["content"])
+                elif isinstance(item.get("value"), str):
+                    fragments.append(item["value"])
+            merged = "".join(fragments).strip()
+            return merged or None
+        if isinstance(content, dict):
+            for key in ("text", "content", "value"):
+                value = content.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value
+        return str(content)
 
     async def create_embedding(self, input_text: str, model: str) -> list[float]:
         payload = {"model": model, "input": input_text}
+        logger.debug(
+            "Sending embedding request | provider=%s model=%s input=%s",
+            self.provider,
+            model,
+            input_text[:200],
+        )
         response = await self.client.post("embeddings", json=payload)
         response.raise_for_status()
         data: dict[str, Any] = response.json()
+        logger.debug(
+            "Received embedding response | provider=%s model=%s dimensions=%d",
+            self.provider,
+            model,
+            len(data["data"][0]["embedding"]),
+        )
         return data["data"][0]["embedding"]
 
     async def list_models(self) -> list[ModelCard]:

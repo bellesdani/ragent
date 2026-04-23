@@ -87,9 +87,21 @@ class RetrievedContext(BaseModel):
     documents: list[RetrievalDocument]
 
 
+class LLMToolFunction(BaseModel):
+    name: str
+    arguments: str
+
+
+class LLMToolCall(BaseModel):
+    id: str
+    type: Literal["function"] = "function"
+    function: LLMToolFunction
+
+
 class LLMChatResult(BaseModel):
-    content: str
+    content: str | None = None
     usage: ChatCompletionUsage
+    tool_calls: list[LLMToolCall] = Field(default_factory=list)
 
 
 class ModelCard(BaseModel):
