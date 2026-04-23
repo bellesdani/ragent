@@ -1,0 +1,50 @@
+services:
+  # Agent service exposed like OpenAI API
+  ragent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ragent
+    environment:
+      APP_NAME: ${APP_NAME:-ragent}
+      APP_ENV: ${APP_ENV:-development}
+      APP_HOST: ${APP_HOST:-0.0.0.0}
+      APP_PORT: ${APP_PORT:-8000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CHAT_PROVIDER: ${CHAT_PROVIDER}
+      CHAT_API_KEY: ${CHAT_API_KEY:-}
+      CHAT_BASE_URL: ${CHAT_BASE_URL}
+      CHAT_MODEL: ${CHAT_MODEL}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-60}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.2}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-800}
+      QDRANT_URL: ${QDRANT_URL}
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Open-WebUI: GUI service to chat with LLMs
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.8.10
+    container_name: open-webui
+    restart: unless-stopped
+    volumes:
+      - ./volumes/open-webui/data:/app/backend/data
+    environment:
+      PORT: "8080"
+      WEBUI_SECRET_KEY: "localdevelopment"
+    entrypoint: >
+      /app/backend/start.sh
+    ports: 
+      - "8080:8080"
