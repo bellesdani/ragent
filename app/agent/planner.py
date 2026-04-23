@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import logging
 
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
+
 from app.retrieval.base import BaseRetriever
 from app.agent.catalog import AgentDefinition
+from app.agent.prompt_builder import PromptBuilder
 from app.llm.openai_compat import OpenAICompatClient
 from app.api.schemas.openai import ChatCompletionUsage, ChatMessage
 
@@ -27,6 +29,7 @@ class RetrievalPlanner:
     def __init__(self, llm_client: OpenAICompatClient, retriever: BaseRetriever) -> None:
         self.llm_client = llm_client
         self.retriever = retriever
+        self.prompt_builder = PromptBuilder()
 
     async def plan(self, agent: AgentDefinition, messages: list[ChatMessage]) -> PlannerDecision:
         planner_messages = self._build_planner_messages(agent, messages)
@@ -59,15 +62,7 @@ class RetrievalPlanner:
         for message in messages[-6:]:
             if message.content and message.role in {"user", "assistant"}:
                 history_lines.append(f"{message.role}: {message.content}")
-        planner_prompt = (
-            f"Eres el planificador interno del agente {agent.agent_id}. "
-            "Debes decidir si hace falta consultar conocimiento externo antes de responder. "
-            "Responde siempre y solo con un objeto JSON válido, sin texto adicional ni markdown, con esta forma exacta: "
-            '{"should_search": boolean, "query": string | null, "sources": string[], "reason": string}. '
-            "Usa should_search=false para saludos, cortesías, small talk o preguntas que se puedan responder sin RAG. "
-            "Usa should_search=true para peticiones de información factual, políticas, procedimientos o datos corporativos. "
-            f"Fuentes disponibles: {json.dumps(sources, ensure_ascii=False)}."
-        )
+        planner_prompt = self.prompt_builder.build_planner_prompt(agent_id=agent.agent_id, sources=sources)
         return [
             {"role": "system", "content": planner_prompt},
             {"role": "user", "content": "\n".join(history_lines) or self._latest_user_message(messages)},
@@ -98,8 +93,7 @@ class RetrievalPlanner:
         available_sources = {source["id"] for source in self.retriever.list_sources()}
         if not isinstance(sources, list):
             return []
-        normalized = [source for source in sources if isinstance(source, str) and source in available_sources]
-        return normalized
+        return [source for source in sources if isinstance(source, str) and source in available_sources]
 
     def _latest_user_message(self, messages: list[ChatMessage]) -> str:
         for message in reversed(messages):

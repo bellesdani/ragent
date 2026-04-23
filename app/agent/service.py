@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import uuid
 import json
 import logging
-from typing import Any
-from dataclasses import dataclass
-from app.config.config import Settings
+import uuid
+
 from collections.abc import AsyncIterator
-from app.retrieval.base import BaseRetriever
-from app.llm.openai_compat import OpenAICompatClient
+from dataclasses import dataclass
+from typing import Any
+
 from app.agent.catalog import AgentCatalog, AgentDefinition
 from app.agent.planner import PlannerDecision, RetrievalPlanner
+from app.agent.prompt_builder import PromptBuilder
 from app.api.schemas.openai import (
     ChatCompletionChoice,
     ChatCompletionChoiceMessage,
@@ -23,6 +23,9 @@ from app.api.schemas.openai import (
     ChatMessage,
     RetrievalDocument,
 )
+from app.config.config import Settings
+from app.llm.openai_compat import OpenAICompatClient
+from app.retrieval.base import BaseRetriever
 
 
 logger = logging.getLogger(__name__)
@@ -47,6 +50,7 @@ class ChatAgentService:
         self.retriever = retriever
         self.llm_client = llm_client
         self.agent_catalog = agent_catalog
+        self.prompt_builder = PromptBuilder()
         self.retrieval_planner = RetrievalPlanner(llm_client=llm_client, retriever=retriever)
 
     async def create_chat_completion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
@@ -180,18 +184,7 @@ class ChatAgentService:
         )
 
     def _build_base_messages(self, messages: list[ChatMessage], system_prompt: str) -> list[dict[str, Any]]:
-        history = [
-            message
-            for message in messages
-            if message.role in {"user", "assistant", "system"} and message.content
-        ]
-        llm_messages = [{"role": "system", "content": system_prompt}]
-        llm_messages.extend(
-            {"role": message.role, "content": message.content}
-            for message in history
-            if message.role != "system"
-        )
-        return llm_messages
+        return self._compose_llm_messages(messages, system_prompt)
 
     def _build_answer_messages(
         self,
@@ -200,34 +193,21 @@ class ChatAgentService:
         documents: list[RetrievalDocument],
         plan: PlannerDecision,
     ) -> list[dict[str, Any]]:
-        system_parts = [system_prompt]
-        if plan.should_search:
-            if documents:
-                citations = []
-                for index, document in enumerate(documents, start=1):
-                    source = document.metadata.get("source_name") or document.metadata.get("collection") or document.id
-                    metadata = self._format_document_metadata(document.metadata)
-                    citation_parts = [f"[{index}] {source}"]
-                    if metadata:
-                        citation_parts.append(f"Metadata: {metadata}")
-                    citation_parts.append(document.text)
-                    citations.append("\n".join(citation_parts))
-                system_parts.append("Contexto recuperado:\n" + "\n\n".join(citations))
-            else:
-                system_parts.append(
-                    "Se intento buscar contexto relevante, pero no se encontro evidencia suficiente en las fuentes seleccionadas."
-                )
-        else:
-            system_parts.append(
-                "No es necesario consultar conocimiento externo para esta respuesta. Responde directamente usando solo el historial."
-            )
+        answer_system_prompt = self.prompt_builder.build_answer_system_prompt(
+            base_system_prompt=system_prompt,
+            documents=documents,
+            should_search=plan.should_search,
+            format_metadata=self._format_document_metadata,
+        )
+        return self._compose_llm_messages(messages, answer_system_prompt)
 
+    def _compose_llm_messages(self, messages: list[ChatMessage], system_prompt: str) -> list[dict[str, Any]]:
         history = [
             message
             for message in messages
             if message.role in {"user", "assistant", "system"} and message.content
         ]
-        llm_messages = [{"role": "system", "content": "\n\n".join(system_parts)}]
+        llm_messages = [{"role": "system", "content": system_prompt}]
         llm_messages.extend(
             {"role": message.role, "content": message.content}
             for message in history

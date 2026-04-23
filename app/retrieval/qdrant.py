@@ -3,45 +3,22 @@ from __future__ import annotations
 import logging
 
 from typing import Any
-from dataclasses import dataclass
 from app.config.config import Settings
 from qdrant_client import AsyncQdrantClient
-from app.llm.openai_compat import OpenAICompatClient
 from app.retrieval.base import BaseRetriever
 from app.api.schemas.openai import ChatMessage, RetrievalDocument, RetrievedContext
-
-
-logger = logging.getLogger(__name__)
-
-DEFAULT_TOP_K = 15
-DEFAULT_SCORE_THRESHOLD = 0.5
-DEFAULT_CONTEXT_MAX_CHARS = 12000
-DEFAULT_PAYLOAD_TEXT_KEYS = ("text", "content", "chunk", "page_content")
-DEFAULT_SEARCH_SOURCES = (
-    {
-        "id": "devices",
-        "name": "Devices",
-        "description": "Información sobre los dispostivos de la empresa, tales como servidores y equipos de usuarios y de la planta.",
-        "collection": "devices",
-        "vector_name": None,
-    },
-    {
-        "id": "employees",
-        "name": "Employees",
-        "description": "Información sobre los empreados de la empresa y su contacto corporativo, como correo electónico, teléfono y extensión.",
-        "collection": "employees",
-        "vector_name": None,
-    },
+from app.llm.openai_compat import OpenAICompatClient
+from app.retrieval.config import (
+    DEFAULT_CONTEXT_MAX_CHARS,
+    DEFAULT_PAYLOAD_TEXT_KEYS,
+    DEFAULT_SCORE_THRESHOLD,
+    DEFAULT_SEARCH_SOURCES,
+    DEFAULT_TOP_K,
+    KnowledgeSource,
 )
 
 
-@dataclass(frozen=True)
-class KnowledgeSource:
-    id: str
-    name: str
-    description: str
-    collection: str
-    vector_name: str | None = None
+logger = logging.getLogger(__name__)
 
 
 class QdrantRetriever(BaseRetriever):
@@ -49,15 +26,17 @@ class QdrantRetriever(BaseRetriever):
         self.settings = settings
         self.embedding_client = embedding_client
         self.client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
-        self.sources = {
-            source["id"]: KnowledgeSource(**source)
-            for source in DEFAULT_SEARCH_SOURCES
-        }
+        self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
 
     async def retrieve(self, query: str, messages: list[ChatMessage]) -> RetrievedContext:
         return await self.retrieve_from_sources(query=query, messages=messages, source_ids=None)
 
-    async def retrieve_from_sources(self, query: str, messages: list[ChatMessage], source_ids: list[str] | None = None) -> RetrievedContext:
+    async def retrieve_from_sources(
+        self,
+        query: str,
+        messages: list[ChatMessage],
+        source_ids: list[str] | None = None,
+    ) -> RetrievedContext:
         rewritten_query = self._rewrite_query(query, messages)
         logger.debug(
             "Starting retrieval from sources | query=%s rewritten_query=%s source_ids=%s",

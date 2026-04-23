@@ -11,7 +11,7 @@ def configure_logging(log_level: str) -> None:
     if not root_logger.handlers:
         logging.basicConfig(
             level=level,
-            format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+            format="%(levelname)s: [%(name)s] %(message)s",
         )
     else:
         root_logger.setLevel(level)
@@ -26,3 +26,10 @@ def configure_logging(log_level: str) -> None:
         "app.llm.openai_compat",
     ):
         logging.getLogger(logger_name).setLevel(level)
+
+    for logger_name in (
+        "httpx",
+        "httpcore",
+        "httpcore.http11",
+    ):
+        logging.getLogger(logger_name).setLevel(logging.WARNING)

@@ -24,13 +24,7 @@ class OpenAICompatClient:
             headers=headers,
         )
 
-    async def create_chat_completion(
-        self,
-        model: str,
-        messages: list[dict[str, Any]],
-        temperature: float,
-        max_tokens: int,
-    ) -> LLMChatResult:
+    async def create_chat_completion(self, model: str, messages: list[dict[str, Any]], temperature: float, max_tokens: int) -> LLMChatResult:
         payload = {
             "model": model,
             "messages": messages,
@@ -72,13 +66,7 @@ class OpenAICompatClient:
             ),
         )
 
-    async def stream_chat_completion(
-        self,
-        model: str,
-        messages: list[dict[str, Any]],
-        temperature: float,
-        max_tokens: int,
-    ) -> AsyncIterator[str]:
+    async def stream_chat_completion(self, model: str, messages: list[dict[str, Any]], temperature: float, max_tokens: int) -> AsyncIterator[str]:
         payload = {
             "model": model,
             "messages": messages,

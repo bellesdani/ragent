@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from app.config.config import Settings
+from app.agent.prompt_builder import PromptBuilder
 
 
 @dataclass(frozen=True)
@@ -16,28 +17,22 @@ class AgentDefinition:
 
 class AgentCatalog:
     def __init__(self, settings: Settings) -> None:
+        prompt_builder = PromptBuilder()
         self._agents = {
             "Quipi": AgentDefinition(
                 agent_id="Quipi",
                 name="Quipi",
-                description="Agente conversacional corporativo con acceso a herramientas de búsqueda sobre Qdrant.",
+                description="Agente conversacional corporativo con acceso a herramientas de busqueda sobre Qdrant.",
                 backend_chat_model=settings.chat_model,
-                system_prompt=(
-                    "Eres Quipi, el agente corporativo de Equipe Cerámicas. "
-                    "Responde en español, con precisión y con un tono profesional. "
-                    "Puedes apoyarte en conocimiento corporativo cuando la situación lo requiera."
-                ),
+                system_prompt=prompt_builder.build_agent_system_prompt("agents/quipi_system.md"),
                 use_planner=True,
             ),
             "Base": AgentDefinition(
                 agent_id="Base",
                 name="Base",
-                description="Agente conversacional básico sin conexiones a herramientas de búsqueda.",
+                description="Agente conversacional basico sin conexiones a herramientas de busqueda.",
                 backend_chat_model=settings.chat_model,
-                system_prompt=(
-                    "Eres Quipi, el agente corporativo de Equipe Cerámicas. "
-                    "Responde de forma útil, breve y natural."
-                ),
+                system_prompt=prompt_builder.build_agent_system_prompt("agents/base_system.md"),
                 use_planner=False,
             ),
         }

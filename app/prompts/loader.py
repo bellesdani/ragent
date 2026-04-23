@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+from functools import lru_cache
+from pathlib import Path
+from string import Template
+
+
+PROMPTS_DIR = Path(__file__).resolve().parent
+
+
+@lru_cache(maxsize=None)
+def load_prompt(relative_path: str) -> str:
+    prompt_path = PROMPTS_DIR / relative_path
+    return prompt_path.read_text(encoding="utf-8").strip()
+
+
+def render_prompt(relative_path: str, **context: str) -> str:
+    template = Template(load_prompt(relative_path))
+    return template.safe_substitute(**context).strip()
