@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import uuid
 import json
 import logging
-import uuid
-from collections.abc import AsyncIterator
-from dataclasses import dataclass
 from typing import Any
-
+from dataclasses import dataclass
+from app.config.config import Settings
+from collections.abc import AsyncIterator
+from app.retrieval.base import BaseRetriever
+from app.llm.openai_compat import OpenAICompatClient
 from app.agent.catalog import AgentCatalog, AgentDefinition
 from app.agent.planner import PlannerDecision, RetrievalPlanner
 from app.api.schemas.openai import (
@@ -21,9 +23,6 @@ from app.api.schemas.openai import (
     ChatMessage,
     RetrievalDocument,
 )
-from app.config.config import Settings
-from app.llm.openai_compat import OpenAICompatClient
-from app.retrieval.base import BaseRetriever
 
 
 logger = logging.getLogger(__name__)

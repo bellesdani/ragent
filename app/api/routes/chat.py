@@ -3,9 +3,9 @@ from app.agent.catalog import AgentCatalog
 from fastapi import APIRouter, HTTPException
 from app.agent.service import ChatAgentService
 from fastapi.responses import StreamingResponse
-from app.api.schemas.openai import ChatCompletionRequest, ChatCompletionResponse, ModelCard, ModelListResponse
-from app.llm.openai_compat import OpenAICompatClient
 from app.retrieval.qdrant import QdrantRetriever
+from app.llm.openai_compat import OpenAICompatClient
+from app.api.schemas.openai import ChatCompletionRequest, ChatCompletionResponse, ModelCard, ModelListResponse
 
 
 router = APIRouter()

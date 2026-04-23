@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import json
-import logging
-from collections.abc import AsyncIterator
-from typing import Any
-
 import httpx
+import logging
 
+from typing import Any
+from collections.abc import AsyncIterator
 from app.api.schemas.openai import ChatCompletionUsage, LLMChatResult, LLMToolCall, LLMToolFunction, ModelCard
 
 
