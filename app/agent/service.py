@@ -206,7 +206,12 @@ class ChatAgentService:
                 citations = []
                 for index, document in enumerate(documents, start=1):
                     source = document.metadata.get("source_name") or document.metadata.get("collection") or document.id
-                    citations.append(f"[{index}] {source}\n{document.text}")
+                    metadata = self._format_document_metadata(document.metadata)
+                    citation_parts = [f"[{index}] {source}"]
+                    if metadata:
+                        citation_parts.append(f"Metadata: {metadata}")
+                    citation_parts.append(document.text)
+                    citations.append("\n".join(citation_parts))
                 system_parts.append("Contexto recuperado:\n" + "\n\n".join(citations))
             else:
                 system_parts.append(
@@ -251,6 +256,18 @@ class ChatAgentService:
             completion_tokens=left.completion_tokens + right.completion_tokens,
             total_tokens=left.total_tokens + right.total_tokens,
         )
+
+    def _format_document_metadata(self, metadata: dict[str, Any]) -> str:
+        if not metadata:
+            return ""
+        visible_metadata = {
+            key: value
+            for key, value in metadata.items()
+            if value not in (None, "", [], {})
+        }
+        if not visible_metadata:
+            return ""
+        return json.dumps(visible_metadata, ensure_ascii=False, default=str)
 
     def _format_sse(self, payload: dict[str, Any]) -> str:
         return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"

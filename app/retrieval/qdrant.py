@@ -133,14 +133,12 @@ class QdrantRetriever(BaseRetriever):
     def _point_to_document(self, point: Any, source: KnowledgeSource) -> RetrievalDocument:
         payload = dict(point.payload or {})
         text = self._extract_text(payload)
-        payload.setdefault("collection", source.collection)
-        payload.setdefault("source_id", source.id)
-        payload.setdefault("source_name", source.name)
+        metadata = self._extract_metadata(payload, source)
         return RetrievalDocument(
             id=f"{source.id}:{point.id}",
             score=float(point.score or 0.0),
             text=text,
-            metadata=payload,
+            metadata=metadata,
         )
 
     def _extract_text(self, payload: dict[str, Any]) -> str:
@@ -149,6 +147,18 @@ class QdrantRetriever(BaseRetriever):
             if isinstance(value, str) and value.strip():
                 return value.strip()
         return ""
+
+    def _extract_metadata(self, payload: dict[str, Any], source: KnowledgeSource) -> dict[str, Any]:
+        raw_metadata = payload.get("metadata")
+        metadata = dict(raw_metadata) if isinstance(raw_metadata, dict) else {}
+        for key, value in payload.items():
+            if key in {"content", "metadata"}:
+                continue
+            metadata.setdefault(key, value)
+        metadata.setdefault("collection", source.collection)
+        metadata.setdefault("source_id", source.id)
+        metadata.setdefault("source_name", source.name)
+        return metadata
 
     def _trim_context(self, documents: list[RetrievalDocument]) -> list[RetrievalDocument]:
         current_size = 0
