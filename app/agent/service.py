@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import uuid
 import json
 import logging
-
-from typing import Any
-from app.config.config import Settings
+import uuid
 from collections.abc import AsyncIterator
-from app.retrieval.base import BaseRetriever
-from app.llm.openai_compat import OpenAICompatClient
+from dataclasses import dataclass
+from typing import Any
+
 from app.agent.catalog import AgentCatalog, AgentDefinition
 from app.agent.planner import PlannerDecision, RetrievalPlanner
 from app.api.schemas.openai import (
@@ -23,9 +21,19 @@ from app.api.schemas.openai import (
     ChatMessage,
     RetrievalDocument,
 )
+from app.config.config import Settings
+from app.llm.openai_compat import OpenAICompatClient
+from app.retrieval.base import BaseRetriever
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PreparedAgentCompletion:
+    agent: AgentDefinition
+    messages: list[dict[str, Any]]
+    accumulated_usage: ChatCompletionUsage
 
 
 class ChatAgentService:
@@ -43,24 +51,21 @@ class ChatAgentService:
         self.retrieval_planner = RetrievalPlanner(llm_client=llm_client, retriever=retriever, settings=settings)
 
     async def create_chat_completion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
-        agent = self.agent_catalog.get_agent(request.model)
-        logger.debug(
-            "Received chat completion request | agent=%s request_model=%s stream=%s messages=%d latest_user=%s",
-            agent.agent_id,
-            request.model,
-            request.stream,
-            len(request.messages),
-            self._safe_latest_user_message(request.messages),
+        prepared = await self._prepare_agent_completion(request)
+        llm_result = await self._run_direct_completion(
+            agent=prepared.agent,
+            messages=prepared.messages,
+            request=request,
         )
-        llm_result = await self._run_agent(agent, request)
+        llm_result.usage = self._merge_usage(prepared.accumulated_usage, llm_result.usage)
         logger.debug(
             "Returning chat completion response | agent=%s has_content=%s preview=%s",
-            agent.agent_id,
+            prepared.agent.agent_id,
             bool(llm_result.content and llm_result.content.strip()),
             (llm_result.content or "")[:300],
         )
         return ChatCompletionResponse(
-            model=agent.agent_id,
+            model=prepared.agent.agent_id,
             choices=[
                 ChatCompletionChoice(
                     message=ChatCompletionChoiceMessage(content=llm_result.content or ""),
@@ -70,42 +75,62 @@ class ChatAgentService:
         )
 
     async def stream_chat_completion(self, request: ChatCompletionRequest) -> AsyncIterator[str]:
-        response = await self.create_chat_completion(request)
+        prepared = await self._prepare_agent_completion(request)
         chunk_id = f"chatcmpl-{uuid.uuid4().hex}"
-        first_chunk = ChatCompletionStreamChunk(
-            id=chunk_id,
-            model=response.model,
-            choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(role="assistant"))],
+        logger.debug("Starting streaming response | agent=%s", prepared.agent.agent_id)
+
+        yield self._format_sse(
+            ChatCompletionStreamChunk(
+                id=chunk_id,
+                model=prepared.agent.agent_id,
+                choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(role="assistant"))],
+            ).model_dump()
         )
-        yield self._format_sse(first_chunk.model_dump())
-        content_chunk = ChatCompletionStreamChunk(
-            id=chunk_id,
-            model=response.model,
-            choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(content=response.choices[0].message.content))],
+
+        async for content in self.llm_client.stream_chat_completion(
+            model=prepared.agent.backend_chat_model,
+            messages=prepared.messages,
+            temperature=request.temperature or self.settings.llm_temperature,
+            max_tokens=request.max_tokens or self.settings.llm_max_tokens,
+        ):
+            yield self._format_sse(
+                ChatCompletionStreamChunk(
+                    id=chunk_id,
+                    model=prepared.agent.agent_id,
+                    choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(content=content))],
+                ).model_dump()
+            )
+
+        yield self._format_sse(
+            ChatCompletionStreamChunk(
+                id=chunk_id,
+                model=prepared.agent.agent_id,
+                choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(), finish_reason="stop")],
+            ).model_dump()
         )
-        yield self._format_sse(content_chunk.model_dump())
-        final_chunk = ChatCompletionStreamChunk(
-            id=chunk_id,
-            model=response.model,
-            choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(), finish_reason="stop")],
-        )
-        yield self._format_sse(final_chunk.model_dump())
         yield "data: [DONE]\n\n"
 
-    async def _run_agent(self, agent: AgentDefinition, request: ChatCompletionRequest):
+    async def _prepare_agent_completion(self, request: ChatCompletionRequest) -> PreparedAgentCompletion:
+        agent = self.agent_catalog.get_agent(request.model)
+        logger.debug(
+            "Received chat completion request | agent=%s request_model=%s stream=%s messages=%d latest_user=%s",
+            agent.agent_id,
+            request.model,
+            request.stream,
+            len(request.messages),
+            self._safe_latest_user_message(request.messages),
+        )
+
         if not agent.use_planner:
             logger.debug("Running agent without planner | agent=%s", agent.agent_id)
-            return await self._run_direct_completion(
+            return PreparedAgentCompletion(
                 agent=agent,
                 messages=self._build_base_messages(request.messages, agent.system_prompt),
-                request=request,
+                accumulated_usage=self._empty_usage(),
             )
 
         logger.debug("Running agent with retrieval planner | agent=%s", agent.agent_id)
-        plan = await self.retrieval_planner.plan(
-            agent=agent,
-            messages=request.messages,
-        )
+        plan = await self.retrieval_planner.plan(agent=agent, messages=request.messages)
         logger.debug(
             "Planner decision | agent=%s should_search=%s query=%s sources=%s reason=%s",
             agent.agent_id,
@@ -116,7 +141,6 @@ class ChatAgentService:
         )
 
         documents: list[RetrievalDocument] = []
-        accumulated_usage = plan.usage
         if plan.should_search:
             retrieval = await self.retriever.retrieve_from_sources(
                 query=plan.query or self._latest_user_message(request.messages),
@@ -131,7 +155,7 @@ class ChatAgentService:
                 retrieval.query,
             )
 
-        llm_result = await self._run_direct_completion(
+        return PreparedAgentCompletion(
             agent=agent,
             messages=self._build_answer_messages(
                 messages=request.messages,
@@ -139,12 +163,15 @@ class ChatAgentService:
                 documents=documents,
                 plan=plan,
             ),
-            request=request,
+            accumulated_usage=plan.usage,
         )
-        llm_result.usage = self._merge_usage(accumulated_usage, llm_result.usage)
-        return llm_result
 
-    async def _run_direct_completion(self, agent: AgentDefinition, messages: list[dict[str, Any]], request: ChatCompletionRequest):
+    async def _run_direct_completion(
+        self,
+        agent: AgentDefinition,
+        messages: list[dict[str, Any]],
+        request: ChatCompletionRequest,
+    ):
         logger.debug("Running direct completion | agent=%s messages=%d", agent.agent_id, len(messages))
         return await self.llm_client.create_chat_completion(
             model=agent.backend_chat_model,
@@ -184,7 +211,7 @@ class ChatAgentService:
                 system_parts.append("Contexto recuperado:\n" + "\n\n".join(citations))
             else:
                 system_parts.append(
-                    "Se intentó buscar contexto relevante, pero no se encontró evidencia suficiente en las fuentes seleccionadas."
+                    "Se intento buscar contexto relevante, pero no se encontro evidencia suficiente en las fuentes seleccionadas."
                 )
         else:
             system_parts.append(
@@ -216,6 +243,9 @@ class ChatAgentService:
         except ValueError:
             return None
 
+    def _empty_usage(self) -> ChatCompletionUsage:
+        return ChatCompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+
     def _merge_usage(self, left: ChatCompletionUsage, right: ChatCompletionUsage) -> ChatCompletionUsage:
         return ChatCompletionUsage(
             prompt_tokens=left.prompt_tokens + right.prompt_tokens,
@@ -223,5 +253,5 @@ class ChatAgentService:
             total_tokens=left.total_tokens + right.total_tokens,
         )
 
-    def _format_sse(self, payload: dict) -> str:
+    def _format_sse(self, payload: dict[str, Any]) -> str:
         return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"

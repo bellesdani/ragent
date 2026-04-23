@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-import httpx
 import json
 import logging
-
+from collections.abc import AsyncIterator
 from typing import Any
+
+import httpx
+
 from app.api.schemas.openai import ChatCompletionUsage, LLMChatResult, LLMToolCall, LLMToolFunction, ModelCard
 
 
@@ -91,6 +93,45 @@ class OpenAICompatClient:
             ],
         )
 
+    async def stream_chat_completion(
+        self,
+        model: str,
+        messages: list[dict[str, Any]],
+        temperature: float,
+        max_tokens: int,
+    ) -> AsyncIterator[str]:
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "stream": True,
+        }
+        logger.debug(
+            "Sending streaming chat completion request | provider=%s model=%s messages=%d",
+            self.provider,
+            model,
+            len(messages),
+        )
+        async with self.client.stream("POST", "chat/completions", json=payload) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line or not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if not data:
+                    continue
+                if data == "[DONE]":
+                    break
+                try:
+                    payload = json.loads(data)
+                except json.JSONDecodeError:
+                    logger.warning("Skipping invalid streaming chunk | raw=%s", data)
+                    continue
+                content = self._extract_stream_content(payload)
+                if content:
+                    yield content
+
     def _normalize_content(self, content: Any) -> str | None:
         if content is None:
             return None
@@ -122,6 +163,26 @@ class OpenAICompatClient:
                 if isinstance(value, str) and value.strip():
                     return value
         return str(content)
+
+    def _extract_stream_content(self, payload: dict[str, Any]) -> str | None:
+        choices = payload.get("choices")
+        if not isinstance(choices, list) or not choices:
+            return None
+        choice = choices[0] or {}
+        delta = choice.get("delta")
+        if isinstance(delta, dict):
+            content = self._normalize_content(delta.get("content"))
+            if content:
+                return content
+        message = choice.get("message")
+        if isinstance(message, dict):
+            content = self._normalize_content(message.get("content"))
+            if content:
+                return content
+        text = choice.get("text")
+        if isinstance(text, str) and text:
+            return text
+        return None
 
     async def create_embedding(self, input_text: str, model: str) -> list[float]:
         payload = {"model": model, "input": input_text}
