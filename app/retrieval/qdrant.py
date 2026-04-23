@@ -12,7 +12,7 @@ from app.api.schemas.openai import ChatMessage, RetrievalDocument, RetrievedCont
 
 
 WORD_PATTERN = re.compile(r"\w+", re.UNICODE)
-DEFAULT_COLLECTION = "corporate_knowledge"
+DEFAULT_COLLECTION = "devices"
 DEFAULT_VECTOR_NAME: str | None = None
 DEFAULT_SEARCH_LIMIT = 12
 DEFAULT_TOP_K = 5
