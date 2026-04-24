@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from pydantic_ai import Agent, RunContext
-
 from app.agent.deps import AgentDeps
+from pydantic_ai import Agent, RunContext
 
 
 def register_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:

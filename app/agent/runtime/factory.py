@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from openai import AsyncOpenAI
 from pydantic_ai import Agent
+from openai import AsyncOpenAI
+from app.agent.deps import AgentDeps
+from app.config.config import Settings
+from pydantic_ai.settings import ModelSettings
+from app.agent.definitions import AgentDefinition
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.settings import ModelSettings
-
-from app.agent.definitions import AgentDefinition
-from app.agent.deps import AgentDeps
-from app.agent.tools import register_calculator_tool, register_retrieval_tool
-from app.config.config import Settings
+from app.agent.tools.retrieval import register_retrieval_tool
+from app.agent.tools.calculator import register_calculator_tool
 
 
 class AgentFactory:

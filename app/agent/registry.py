@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from app.agent.definitions import AgentDefinition
 from app.config.config import Settings
 from app.prompts.loader import load_prompt
+from app.agent.definitions import AgentDefinition
 
 
 class AgentCatalog:

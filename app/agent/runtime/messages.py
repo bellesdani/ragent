@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
-
 from app.api.schemas.openai import ChatMessage
+from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 
 
 def split_messages(messages: list[ChatMessage], instructions: str) -> tuple[str, list[ModelMessage]]:

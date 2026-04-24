@@ -1,10 +1,10 @@
-from app.api.schemas.openai import ChatCompletionRequest, ChatCompletionResponse, ModelCard, ModelListResponse
-from app.application.chat_service import ChatAgentService
-from app.agent.registry import AgentCatalog
 from app.config.config import get_settings
-from app.llm.openai_compat import OpenAICompatClient
-from app.retrieval.qdrant import QdrantRetriever
+from app.agent.registry import AgentCatalog
 from fastapi import APIRouter, HTTPException
+from app.retrieval.qdrant import QdrantRetriever
+from app.llm.openai_compat import OpenAICompatClient
+from app.application.chat_service import ChatAgentService
+from app.api.schemas.openai import ChatCompletionRequest, ChatCompletionResponse, ModelCard, ModelListResponse
 
 
 router = APIRouter()

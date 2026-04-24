@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from pydantic_ai import Agent, ModelRetry
-
 from app.agent.deps import AgentDeps
+from pydantic_ai import Agent, ModelRetry
 
 
 def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
