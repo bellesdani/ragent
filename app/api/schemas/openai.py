@@ -68,10 +68,6 @@ class RetrievedContext(BaseModel):
     documents: list[RetrievalDocument]
 
 
-class LLMChatResult(BaseModel):
-    content: str | None = None
-    usage: ChatCompletionUsage
-
 
 class ModelCard(BaseModel):
     id: str

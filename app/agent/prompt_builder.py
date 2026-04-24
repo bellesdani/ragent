@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.prompts import load_prompt
+from app.prompts.loader import load_prompt
 
 
 class PromptBuilder:

@@ -14,6 +14,3 @@ def load_prompt(relative_path: str) -> str:
     return prompt_path.read_text(encoding="utf-8").strip()
 
 
-def render_prompt(relative_path: str, **context: str) -> str:
-    template = Template(load_prompt(relative_path))
-    return template.safe_substitute(**context).strip()
