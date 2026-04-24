@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import logging
-from app.config.config import Settings
-from app.agent.catalog import AgentCatalog
-from app.retrieval.base import BaseRetriever
-from app.agent.runtime import PydanticAgentRuntime
+
+from app.agent.registry import AgentCatalog
+from app.agent.runtime import AgentRunner
 from app.api.schemas.openai import (
     ChatCompletionChoice,
     ChatCompletionChoiceMessage,
@@ -12,6 +11,8 @@ from app.api.schemas.openai import (
     ChatCompletionResponse,
     ChatMessage,
 )
+from app.config.config import Settings
+from app.retrieval.base import BaseRetriever
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class ChatAgentService:
         self.settings = settings
         self.retriever = retriever
         self.agent_catalog = agent_catalog
-        self.agent_runtime = PydanticAgentRuntime(settings=settings, retriever=retriever)
+        self.agent_runtime = AgentRunner(settings=settings, retriever=retriever)
 
     async def create_chat_completion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
         agent = self.agent_catalog.get_agent(request.model)
@@ -63,4 +64,3 @@ class ChatAgentService:
             if message.role == "user" and message.content:
                 return message.content
         return None
-
