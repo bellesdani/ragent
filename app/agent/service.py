@@ -1,22 +1,15 @@
 from __future__ import annotations
 
-import json
-import uuid
 import logging
-from typing import Any
 from app.config.config import Settings
-from collections.abc import AsyncIterator
 from app.agent.catalog import AgentCatalog
 from app.retrieval.base import BaseRetriever
 from app.agent.runtime import PydanticAgentRuntime
 from app.api.schemas.openai import (
     ChatCompletionChoice,
     ChatCompletionChoiceMessage,
-    ChatCompletionDelta,
     ChatCompletionRequest,
     ChatCompletionResponse,
-    ChatCompletionStreamChunk,
-    ChatCompletionStreamChoice,
     ChatMessage,
 )
 
@@ -39,13 +32,21 @@ class ChatAgentService:
             request.model,
             request.stream,
             len(request.messages),
-            self._safe_latest_user_message(request.messages),
+            self._latest_user_message(request.messages),
         )
         content, usage = await self.agent_runtime.run(
             definition=agent,
             messages=request.messages,
             temperature=request.temperature,
             max_tokens=request.max_tokens,
+        )
+        logger.debug(
+            "Finished chat completion request | agent=%s request_model=%s stream=%s messages=%d latest_user=%s",
+            agent.agent_id,
+            request.model,
+            request.stream,
+            len(request.messages),
+            self._latest_user_message(request.messages),
         )
         return ChatCompletionResponse(
             model=agent.agent_id,
@@ -57,49 +58,7 @@ class ChatAgentService:
             usage=usage,
         )
 
-    # async def stream_chat_completion(self, request: ChatCompletionRequest) -> AsyncIterator[str]:
-    #     agent = self.agent_catalog.get_agent(request.model)
-    #     chunk_id = f"chatcmpl-{uuid.uuid4().hex}"
-    #     logger.debug("Starting streaming response | agent=%s", agent.agent_id)
-
-    #     # Inicio del streaming
-    #     yield self._format_sse(
-    #         ChatCompletionStreamChunk(
-    #             id=chunk_id,
-    #             model=agent.agent_id,
-    #             choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(role="assistant"))],
-    #         ).model_dump()
-    #     )
-
-    #     # Generación del contenido
-    #     content, _usage = await self.agent_runtime.run(
-    #         definition=agent,
-    #         messages=request.messages,
-    #         temperature=request.temperature,
-    #         max_tokens=request.max_tokens,
-    #     )
-
-    #     # Envio del contenido 
-    #     if content:
-    #         yield self._format_sse(
-    #             ChatCompletionStreamChunk(
-    #                 id=chunk_id,
-    #                 model=agent.agent_id,
-    #                 choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(content=content))],
-    #             ).model_dump()
-    #         )
-
-    #     # Finalización del streaming
-    #     yield self._format_sse(
-    #         ChatCompletionStreamChunk(
-    #             id=chunk_id,
-    #             model=agent.agent_id,
-    #             choices=[ChatCompletionStreamChoice(delta=ChatCompletionDelta(), finish_reason="stop")],
-    #         ).model_dump()
-    #     )
-    #     yield "data: [DONE]\n\n"
-
-    def _safe_latest_user_message(self, messages: list[ChatMessage]) -> str | None:
+    def _latest_user_message(self, messages: list[ChatMessage]) -> str | None:
         for message in reversed(messages):
             if message.role == "user" and message.content:
                 return message.content

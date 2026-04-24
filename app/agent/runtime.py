@@ -48,13 +48,17 @@ class PydanticAgentRuntime:
         return agent
 
     async def run(
-        self, definition: AgentDefinition, 
+        self, 
+        definition: AgentDefinition, 
         messages: list[ChatMessage], 
         temperature: float | None, 
         max_tokens: int | None
     ) -> tuple[str, ChatCompletionUsage]:
+        # Construimos el agente específico del catálogo
         agent = self.build_agent(definition)
+        # Reorganizamos los mensajes para el prompt
         latest_user_prompt, message_history = self._split_messages(messages, definition.system_prompt)
+        # Ejecutamos la consulta, llamada a pydanticAI Agent run
         result = await agent.run(
             latest_user_prompt,
             deps=AgentDeps(retriever=self.retriever, messages=messages),
@@ -65,6 +69,7 @@ class PydanticAgentRuntime:
             ),
             usage_limits=self._build_usage_limits(),
         )
+        # Devolvemos la consulta del agente
         usage = result.usage()
         return result.output, ChatCompletionUsage(
             prompt_tokens=usage.input_tokens,
@@ -72,31 +77,8 @@ class PydanticAgentRuntime:
             total_tokens=usage.total_tokens,
         )
 
-    async def stream(
-        self,
-        definition: AgentDefinition,
-        messages: list[ChatMessage],
-        temperature: float | None,
-        max_tokens: int | None,
-    ):
-        agent = self.build_agent(definition)
-        latest_user_prompt, message_history = self._split_messages(messages, definition.system_prompt)
-        return agent.run_stream(
-            latest_user_prompt,
-            deps=AgentDeps(retriever=self.retriever, messages=messages),
-            message_history=message_history,
-            model_settings=ModelSettings(
-                temperature=temperature if temperature is not None else self.settings.llm_temperature,
-                max_tokens=max_tokens if max_tokens is not None else self.settings.llm_max_tokens,
-            ),
-            usage_limits=self._build_usage_limits(),
-        )
 
-    def _split_messages(
-        self,
-        messages: list[ChatMessage],
-        instructions: str,
-    ) -> tuple[str, list[ModelMessage]]:
+    def _split_messages(self, messages: list[ChatMessage], instructions: str) -> tuple[str, list[ModelMessage]]:
         latest_user_index = None
         for index in range(len(messages) - 1, -1, -1):
             if messages[index].role == "user" and messages[index].content:

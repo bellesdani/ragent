@@ -9,23 +9,11 @@ def configure_logging(log_level: str) -> None:
 
     root_logger = logging.getLogger()
     if not root_logger.handlers:
-        logging.basicConfig(
-            level=level,
-            format="%(levelname)s: [%(name)s] %(message)s",
-        )
+        logging.basicConfig(level=level, format="%(levelname)s: [%(name)s] %(message)s")
     else:
         root_logger.setLevel(level)
         for handler in root_logger.handlers:
             handler.setLevel(level)
-
-    for logger_name in (
-        "app",
-        "app.agent.service",
-        "app.agent.planner",
-        "app.retrieval.qdrant",
-        "app.llm.openai_compat",
-    ):
-        logging.getLogger(logger_name).setLevel(level)
 
     for logger_name in (
         "httpx",

@@ -56,25 +56,6 @@ class ChatCompletionResponse(BaseModel):
     usage: ChatCompletionUsage
 
 
-class ChatCompletionDelta(BaseModel):
-    role: Literal["assistant"] | None = None
-    content: str | None = None
-
-
-class ChatCompletionStreamChoice(BaseModel):
-    index: int = 0
-    delta: ChatCompletionDelta
-    finish_reason: Literal["stop"] | None = None
-
-
-class ChatCompletionStreamChunk(BaseModel):
-    id: str = Field(default_factory=lambda: f"chatcmpl-{uuid.uuid4().hex}")
-    object: Literal["chat.completion.chunk"] = "chat.completion.chunk"
-    created: int = Field(default_factory=lambda: int(time.time()))
-    model: str
-    choices: list[ChatCompletionStreamChoice]
-
-
 class RetrievalDocument(BaseModel):
     id: str
     score: float
