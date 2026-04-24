@@ -10,9 +10,11 @@ class AgentDefinition:
     agent_id: str
     name: str
     description: str
+    backend_base_url: str
+    backend_api_key: str
     backend_chat_model: str
     system_prompt: str
-    use_planner: bool
+    enable_retrieval: bool
 
 
 class AgentCatalog:
@@ -23,27 +25,28 @@ class AgentCatalog:
                 agent_id="Quipi",
                 name="Quipi",
                 description="Agente conversacional corporativo con acceso a herramientas de busqueda sobre Qdrant.",
+                backend_base_url=settings.chat_base_url,
+                backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
                 system_prompt=prompt_builder.build_agent_system_prompt("agents/quipi_system.md"),
-                use_planner=True,
+                enable_retrieval=True,
             ),
             "Base": AgentDefinition(
                 agent_id="Base",
                 name="Base",
                 description="Agente conversacional basico sin conexiones a herramientas de busqueda.",
+                backend_base_url=settings.chat_base_url,
+                backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
                 system_prompt=prompt_builder.build_agent_system_prompt("agents/base_system.md"),
-                use_planner=False,
+                enable_retrieval=False,
             ),
         }
 
     def list_agents(self) -> list[AgentDefinition]:
         return list(self._agents.values())
 
-    def get_agent(self, agent_id: str | None) -> AgentDefinition:
-        if not agent_id:
-            return self._agents["Quipi"]
+    def get_agent(self, agent_id: str) -> AgentDefinition:
         if agent_id in self._agents:
             return self._agents[agent_id]
-        available = ", ".join(sorted(self._agents))
-        raise ValueError(f"Unknown agent '{agent_id}'. Available agents: {available}")
+        raise ValueError(f"Unknown agent '{agent_id}'. Available agents: {", ".join(sorted(self._agents))}")

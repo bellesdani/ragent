@@ -13,12 +13,6 @@ router = APIRouter()
 
 settings = get_settings()
 agent_catalog = AgentCatalog(settings)
-chat_client = OpenAICompatClient(
-    base_url=settings.chat_base_url,
-    api_key=settings.chat_api_key,
-    timeout=settings.llm_timeout_seconds,
-    provider=settings.chat_provider,
-)
 embedding_client = OpenAICompatClient(
     base_url=settings.embedding_base_url,
     api_key=settings.embedding_api_key,
@@ -29,7 +23,6 @@ retriever = QdrantRetriever(settings=settings, embedding_client=embedding_client
 agent_service = ChatAgentService(
     settings=settings,
     retriever=retriever,
-    llm_client=chat_client,
     agent_catalog=agent_catalog,
 )
 
@@ -57,8 +50,10 @@ async def list_models() -> ModelListResponse:
 async def create_chat_completion(request: ChatCompletionRequest):
     try:
         if request.stream:
-            stream = agent_service.stream_chat_completion(request)
-            return StreamingResponse(stream, media_type="text/event-stream")
+            # TODO: 
+            # stream = agent_service.stream_chat_completion(request)
+            # return StreamingResponse(stream, media_type="text/event-stream")
+            pass
         return await agent_service.create_chat_completion(request)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -31,12 +31,7 @@ class QdrantRetriever(BaseRetriever):
     async def retrieve(self, query: str, messages: list[ChatMessage]) -> RetrievedContext:
         return await self.retrieve_from_sources(query=query, messages=messages, source_ids=None)
 
-    async def retrieve_from_sources(
-        self,
-        query: str,
-        messages: list[ChatMessage],
-        source_ids: list[str] | None = None,
-    ) -> RetrievedContext:
+    async def retrieve_from_sources(self, query: str, messages: list[ChatMessage], source_ids: list[str] | None = None) -> RetrievedContext:
         rewritten_query = self._rewrite_query(query, messages)
         logger.debug(
             "Starting retrieval from sources | query=%s rewritten_query=%s source_ids=%s",

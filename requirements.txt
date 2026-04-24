@@ -3,3 +3,4 @@ uvicorn[standard]==0.46.0
 httpx==0.28.1
 qdrant-client==1.17.1
 pydantic-settings==2.14.0
+pydantic-ai-slim[openai]==0.8.1
