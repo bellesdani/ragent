@@ -15,13 +15,19 @@ Open WebUI no habla directamente con los modelos backend. Habla con agentes publ
 
 ```text
 app/
-  agent/
   api/
-    routes/
-    schemas/
-  config/
-  llm/
-  retrieval/
+    routes.py       # endpoints FastAPI
+    schemas.py      # modelos HTTP/OpenAI-compatible
+  core/
+    agents.py       # catalogo, runtime y tools de agentes
+    chat.py         # servicio de chat y wiring interno
+    config.py       # settings y logging
+    models.py       # modelos internos compartidos
+    openai.py       # cliente OpenAI-compatible para embeddings
+    prompts.py      # carga de prompts
+    retrieval.py    # busqueda en Qdrant
+    prompts/
+      agents/
 ```
 
 ## Decisiones tecnicas
@@ -29,7 +35,7 @@ app/
 - `FastAPI` para la API y compatibilidad con Open WebUI.
 - `PydanticAI` para la orquestacion del agente y el registro de tools.
 - `OpenAICompatClient` propio para embeddings y conectividad OpenAI-compatible donde no hace falta el runtime del agente.
-- Capa `retrieval` desacoplada mediante interfaz base para permitir sustituir la estrategia RAG.
+- `app/api` contiene solo la interfaz HTTP; `app/core` contiene la logica reusable del servicio.
 - Configuracion contenida: el `.env` queda reservado a conectividad y credenciales; agentes y parametros de retrieval viven en codigo por ahora.
 
 ## Funcionamiento de Quipi
@@ -124,4 +130,4 @@ En esta version, las fuentes de conocimiento disponibles, sus colecciones, las c
 
 ## Streaming
 
-El endpoint acepta `"stream": true` y responde como `text/event-stream` con chunks SSE en formato OpenAI-compatible basico.
+El streaming aun no esta implementado. Si se envia `"stream": true`, el endpoint responde `501 Not Implemented`.

@@ -3,14 +3,9 @@ from __future__ import annotations
 import time
 import uuid
 
-from typing import Any, Literal
+from typing import Literal
 from pydantic import BaseModel, Field, model_validator
-
-
-class ChatMessage(BaseModel):
-    role: Literal["system", "user", "assistant", "tool"]
-    content: str | None = None
-    name: str | None = None
+from app.core.models import ChatCompletionUsage, ChatMessage
 
 
 class ChatCompletionRequest(BaseModel):
@@ -28,12 +23,6 @@ class ChatCompletionRequest(BaseModel):
         if not any(message.role == "user" for message in self.messages):
             raise ValueError("messages must include at least one user message")
         return self
-
-
-class ChatCompletionUsage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
 
 
 class ChatCompletionChoiceMessage(BaseModel):
@@ -54,19 +43,6 @@ class ChatCompletionResponse(BaseModel):
     model: str
     choices: list[ChatCompletionChoice]
     usage: ChatCompletionUsage
-
-
-class RetrievalDocument(BaseModel):
-    id: str
-    score: float
-    text: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
-
-
-class RetrievedContext(BaseModel):
-    query: str
-    documents: list[RetrievalDocument]
-
 
 
 class ModelCard(BaseModel):
