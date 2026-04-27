@@ -178,7 +178,7 @@ def merge_instructions(base_instructions: str, extra_instruction: str) -> str:
 
 def register_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool
-    async def search_sources(ctx: RunContext[AgentDeps], query: str, source_ids: list[str] | None = None) -> str:
+    async def search_sources(ctx: RunContext[AgentDeps], query: str) -> str:
         """
         Busca informacion en Qdrant usando una o varias colecciones.
 
@@ -186,10 +186,9 @@ def register_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             query: Consulta a buscar en la base de conocimiento.
             source_ids: Lista opcional de colecciones a consultar. Si se omite, busca en todas.
         """
-        retrieval = await ctx.deps.retriever.retrieve_from_sources(
+        retrieval = await ctx.deps.retriever.retrieve(
             query=query,
             messages=ctx.deps.messages,
-            source_ids=source_ids,
         )
         if not retrieval.documents:
             return "No se encontro evidencia relevante en las fuentes solicitadas."

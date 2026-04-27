@@ -5,15 +5,12 @@ import logging
 from typing import Any
 from app.core.config import Settings
 from qdrant_client import AsyncQdrantClient
-from app.core.models import ChatMessage, KnowledgeSource, RetrievalDocument, RetrievedContext
 from app.core.openai import OpenAICompatClient
+from app.core.models import ChatMessage, KnowledgeSource, RetrievedContext
 
 
 DEFAULT_TOP_K = 15
-DEFAULT_SCORE_THRESHOLD = 0.5
 DEFAULT_CONTEXT_MAX_CHARS = 12000
-DEFAULT_PAYLOAD_TEXT_KEYS = ("text", "content", "chunk", "page_content")
-
 DEFAULT_SEARCH_SOURCES = (
     KnowledgeSource(
         id="devices",
@@ -41,61 +38,28 @@ class QdrantRetriever:
         self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
 
     async def retrieve(self, query: str, messages: list[ChatMessage]) -> RetrievedContext:
-        return await self.retrieve_from_sources(query=query, messages=messages, source_ids=None)
-
-    async def retrieve_from_sources(self, query: str, messages: list[ChatMessage], source_ids: list[str] | None = None) -> RetrievedContext:
+        # Primero realizamos un query understanding, actualmente muy básico
         rewritten_query = self._rewrite_query(query, messages)
-        logger.debug(
-            "Starting retrieval from sources | query=%s rewritten_query=%s source_ids=%s",
-            query,
-            rewritten_query,
-            source_ids,
-        )
 
+        # Creamos el embedding
         query_vector = await self.embedding_client.create_embedding(
             input_text=rewritten_query,
             model=self.settings.embedding_model,
         )
 
-        documents: list[RetrievalDocument] = []
-        for source in self._resolve_sources(source_ids):
-            logger.debug(
-                "Querying Qdrant source | source_id=%s collection=%s vector_name=%s",
-                source.id,
-                source.collection,
-                source.vector_name,
+        # Buscamos en todas las fuentes los candidatos
+        candidates = []
+        for source in self.sources.values():
+            results = await self.client.query_points(
+                collection_name=source.collection,
+                query=query_vector,
+                limit=DEFAULT_TOP_K,
+                with_payload=True,
             )
-            search_kwargs: dict[str, Any] = {
-                "collection_name": source.collection,
-                "query": query_vector,
-                "limit": DEFAULT_TOP_K,
-                "with_payload": True,
-                "score_threshold": DEFAULT_SCORE_THRESHOLD,
-            }
-            if source.vector_name:
-                search_kwargs["using"] = source.vector_name
-
-            results = await self.client.query_points(**search_kwargs)
             points = results.points if hasattr(results, "points") else []
-            logger.debug("Qdrant source response | source_id=%s points_found=%d", source.id, len(points))
-            documents.extend(self._point_to_document(point, source) for point in points)
-
-        documents = self._trim_context(documents[:DEFAULT_TOP_K])
-        logger.debug(
-            "Retrieval completed | documents=%d documents_preview=%s",
-            len(documents),
-            [
-                {
-                    "id": document.id,
-                    "source": document.metadata.get("source_name") or document.metadata.get("collection"),
-                    "score": document.score,
-                    "text_preview": document.text[:200],
-                }
-                for document in documents
-            ],
-        )
-        
-        return RetrievedContext(query=rewritten_query, documents=documents)
+            candidates.extend(points)
+       
+        return RetrievedContext(query=rewritten_query, documents=candidates)
 
     def list_sources(self) -> list[dict[str, str]]:
         return [
@@ -119,55 +83,3 @@ class QdrantRetriever:
         if not context:
             return query.strip()
         return f"Contexto conversacional: {context}\nConsulta actual: {query.strip()}"
-
-    def _point_to_document(self, point: Any, source: KnowledgeSource) -> RetrievalDocument:
-        payload = dict(point.payload or {})
-        text = self._extract_text(payload)
-        metadata = self._extract_metadata(payload, source)
-        return RetrievalDocument(
-            id=f"{source.id}:{point.id}",
-            score=float(point.score or 0.0),
-            text=text,
-            metadata=metadata,
-        )
-
-    def _extract_text(self, payload: dict[str, Any]) -> str:
-        for key in DEFAULT_PAYLOAD_TEXT_KEYS:
-            value = payload.get(key)
-            if isinstance(value, str) and value.strip():
-                return value.strip()
-        return ""
-
-    def _extract_metadata(self, payload: dict[str, Any], source: KnowledgeSource) -> dict[str, Any]:
-        raw_metadata = payload.get("metadata")
-        metadata = dict(raw_metadata) if isinstance(raw_metadata, dict) else {}
-        for key, value in payload.items():
-            if key in {"content", "metadata"}:
-                continue
-            metadata.setdefault(key, value)
-        metadata.setdefault("collection", source.collection)
-        metadata.setdefault("source_id", source.id)
-        metadata.setdefault("source_name", source.name)
-        return metadata
-
-    def _trim_context(self, documents: list[RetrievalDocument]) -> list[RetrievalDocument]:
-        current_size = 0
-        trimmed: list[RetrievalDocument] = []
-        for doc in documents:
-            if not doc.text:
-                continue
-            next_size = current_size + len(doc.text)
-            if trimmed and next_size > DEFAULT_CONTEXT_MAX_CHARS:
-                break
-            trimmed.append(doc)
-            current_size = next_size
-        return trimmed
-
-    def _resolve_sources(self, source_ids: list[str] | None) -> list[KnowledgeSource]:
-        if not source_ids:
-            return list(self.sources.values())
-        unknown = [source_id for source_id in source_ids if source_id not in self.sources]
-        if unknown:
-            available = ", ".join(sorted(self.sources))
-            raise ValueError(f"Unknown knowledge sources: {', '.join(unknown)}. Available: {available}")
-        return [self.sources[source_id] for source_id in source_ids]
