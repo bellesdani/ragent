@@ -4,20 +4,6 @@ Backend en Python que publica agentes conversacionales con una API compatible co
 
 El servicio no expone directamente el modelo de chat configurado. El cliente selecciona un agente publico (`Quipi`, `Base`, etc.) y RAGent se encarga de ejecutar ese agente contra el proveedor real de IA, con sus prompts, tools y configuracion.
 
-## Capacidades actuales
-
-- API HTTP con `FastAPI`.
-- Endpoints compatibles con OpenAI:
-  - `GET /v1/models`
-  - `POST /v1/chat/completions`
-- Endpoint de salud:
-  - `GET /health`
-- Runtime de agentes con `PydanticAI`.
-- Proveedor de chat OpenAI-compatible configurable por entorno.
-- Embeddings OpenAI-compatible para busqueda semantica.
-- Recuperacion de contexto en Qdrant.
-- Agente con tools de busqueda para empleados, dispositivos y calculadora.
-
 ## Agentes publicados
 
 Los agentes disponibles se definen en `app/core/agent_catalog.py`.
@@ -49,28 +35,6 @@ Agente minimo para validar conectividad, historial y generacion de respuestas.
 
 ## Arquitectura
 
-```text
-app/
-  main.py                    # crea la aplicacion FastAPI y conecta dependencias
-  api/
-    routes.py                # endpoints HTTP
-    schemas.py               # modelos OpenAI-compatible de request/response
-  core/
-    agent_catalog.py         # agentes publicados por la API
-    agent_factory.py         # construccion del agente PydanticAI y proveedor OpenAI-compatible
-    agent_runner.py          # ejecucion del agente, historial y limites de uso
-    agent_tools.py           # tools disponibles para los agentes
-    chat.py                  # servicio de chat y wiring interno
-    config.py                # settings desde .env o entorno
-    entities.py              # entidades internas compartidas
-    openai.py                # cliente HTTP OpenAI-compatible para embeddings
-    prompts.py               # carga cacheada de prompts
-    retrieval.py             # busqueda semantica en Qdrant
-    prompts/
-      base_system.md
-      quipi_system.md
-```
-
 Flujo principal de una peticion:
 
 1. El cliente llama a `/v1/chat/completions` con `model` igual al id del agente.
@@ -86,11 +50,11 @@ Flujo principal de una peticion:
 Las fuentes se definen en `app/core/retrieval.py`.
 
 | Source id | Coleccion Qdrant | Descripcion |
-| --- | --- | --- |
+| --------- | ---------------- | ----------- |
 | `devices` | `devices` | Dispositivos, servidores, equipos de usuario y planta. |
 | `employees` | `employees` | Empleados y datos de contacto corporativo. |
 
-Cada busqueda:
+Cada búsqueda:
 
 1. Reescribe de forma basica la consulta con los ultimos turnos de conversacion.
 2. Genera el embedding con `EMBEDDING_BASE_URL` y `EMBEDDING_MODEL`.
@@ -123,41 +87,6 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=
 ```
 
-Variables obligatorias:
-
-- `CHAT_BASE_URL`
-- `CHAT_MODEL`
-- `EMBEDDING_BASE_URL`
-- `EMBEDDING_MODEL`
-- `QDRANT_URL`
-
-Variables opcionales:
-
-- `CHAT_API_KEY`
-- `EMBEDDING_API_KEY`
-- `QDRANT_API_KEY`
-- `LLM_TIMEOUT_SECONDS`
-- `LLM_TEMPERATURE`
-- `LLM_MAX_TOKENS`
-
-Si falta una variable obligatoria, la aplicacion falla al arrancar con un error de configuracion.
-
-## Arranque local
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Comprueba el servicio:
-
-```bash
-curl http://localhost:8000/health
-curl http://localhost:8000/v1/models
-```
-
 ## Docker
 
 Hay dos ficheros Compose:
@@ -184,108 +113,3 @@ Puertos por defecto:
 - Open WebUI local: `http://localhost:8080`
 
 Cuando Open WebUI se ejecuta desde `docker-compose.local.yml`, puede configurarse contra RAGent usando la URL interna `http://ragent:8000/v1`. Desde fuera de Docker, la URL equivalente es `http://localhost:8000/v1`.
-
-## Ejemplos de uso
-
-Listar agentes:
-
-```bash
-curl http://localhost:8000/v1/models
-```
-
-Usar Quipi:
-
-```bash
-curl -X POST http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "Quipi",
-    "messages": [
-      {"role": "user", "content": "Que extension tiene el usuario Juan Perez?"}
-    ]
-  }'
-```
-
-Usar Base:
-
-```bash
-curl -X POST http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "Base",
-    "messages": [
-      {"role": "user", "content": "Hola, confirma que el servicio responde correctamente."}
-    ]
-  }'
-```
-
-Ejemplo con historial:
-
-```bash
-curl -X POST http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "Quipi",
-    "messages": [
-      {"role": "user", "content": "Busca informacion del equipo con hostname PC-001"},
-      {"role": "assistant", "content": "He encontrado informacion del equipo PC-001."},
-      {"role": "user", "content": "Y quien lo tiene asignado?"}
-    ],
-    "temperature": 0.2,
-    "max_tokens": 800
-  }'
-```
-
-## Compatibilidad OpenAI
-
-La API implementa el formato basico de chat completions:
-
-- `model`
-- `messages`
-- `temperature`
-- `max_tokens`
-- `stream`
-- `user`
-
-Validaciones actuales:
-
-- `messages` no puede estar vacio.
-- Debe existir al menos un mensaje con `role = "user"`.
-- El `model` debe coincidir con un agente publicado.
-
-Limitaciones actuales:
-
-- El streaming SSE aun no esta implementado. Si se envia `"stream": true`, el servicio procesa la peticion como una respuesta no streaming.
-- Solo se devuelve una choice por respuesta.
-- Los roles de entrada aceptados son `system`, `user`, `assistant` y `tool`, aunque el historial que se pasa al agente se reconstruye con mensajes `system`, `user` y `assistant`.
-
-## Desarrollo
-
-Instalar dependencias:
-
-```powershell
-pip install -r requirements.txt
-```
-
-Comprobar que los modulos Python compilan:
-
-```powershell
-python -m compileall app
-```
-
-Dependencias principales:
-
-- `fastapi`
-- `uvicorn`
-- `httpx`
-- `qdrant-client`
-- `pydantic-settings`
-- `pydantic-ai-slim[openai]`
-
-## Notas de implementacion
-
-- `CHAT_MODEL` es interno al servicio. Open WebUI debe usar los ids de agentes que devuelve `/v1/models`.
-- Los prompts viven en ficheros Markdown dentro de `app/core/prompts`.
-- La configuracion de agentes y fuentes de Qdrant vive en codigo.
-- La calculadora valida caracteres permitidos antes de evaluar la expresion.
-- `AgentRunner` limita cada ejecucion a `request_limit=10` llamadas del runtime de PydanticAI.
