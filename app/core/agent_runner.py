@@ -24,7 +24,7 @@ class AgentRunner:
             messages: list[ChatMessage], 
             temperature: float | None, 
             max_tokens: int | None
-        ) -> tuple[str, ChatCompletionUsage]:
+    ) -> tuple[str, ChatCompletionUsage]:
         # Construimos nuestro agente
         agent = self.factory.build(definition)
         # Cargamos el historial de mensajes
