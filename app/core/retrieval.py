@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import logging
-
 from typing import Any
 from app.core.config import Settings
 from qdrant_client import AsyncQdrantClient
 from app.core.openai import OpenAICompatClient
-from app.core.models import ChatMessage, KnowledgeSource, RetrievalDocument, RetrievedContext
+from app.core.entities import ChatMessage, KnowledgeSource, RetrievalDocument, RetrievedContext
 
 
 DEFAULT_TOP_K = 15
@@ -27,7 +25,6 @@ DEFAULT_SEARCH_SOURCES = (
 )
 
 
-logger = logging.getLogger(__name__)
 
 
 class QdrantRetriever:
@@ -47,10 +44,10 @@ class QdrantRetriever:
             model=self.settings.embedding_model,
         )
 
+        # En cada fuente/colección, buscamos los puntos con mayor similitud semántica
+        #  y generamos para cada punto obtenido, un documento: un punto referenciable con su payload y metadata
         documents = []
-        # Buscamos en todas las fuentes los candidatos
         for source in self.sources.values():
-            # Buscamos los puntos con mayor similitud semántica
             results = await self.client.query_points(
                 collection_name=source.collection,
                 query=query_vector,
@@ -58,7 +55,6 @@ class QdrantRetriever:
                 with_payload=True,
             )
             points = results.points if hasattr(results, "points") else []
-            # A partir del punto, generamos un documento: un punto referenciable con su payload y metadata
             documents.extend(self._point_to_document(point, source=source) for point in points)
 
         return RetrievedContext(query=rewritten_query, documents=documents)

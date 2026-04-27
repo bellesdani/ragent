@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from app.core.agent_runner import AgentRunner
 from app.core.config import Settings
 from app.core.openai import OpenAICompatClient
 from app.core.retrieval import QdrantRetriever
-from app.core.agents import AgentCatalog, AgentRunner
-from app.core.models import AgentDefinition, ChatMessage, ChatResult
+from app.core.agent_catalog import AgentCatalog
+
+from app.core.entities import AgentDefinition, ChatMessage, ChatResult
 
 
 class ChatAgentService:

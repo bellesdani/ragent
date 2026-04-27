@@ -5,7 +5,7 @@ import uuid
 
 from typing import Literal
 from pydantic import BaseModel, Field, model_validator
-from app.core.models import ChatCompletionUsage, ChatMessage
+from app.core.entities import ChatCompletionUsage, ChatMessage
 
 
 class ChatCompletionRequest(BaseModel):

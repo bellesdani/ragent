@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from pydantic import BaseModel
 from dataclasses import dataclass
-from pydantic import BaseModel, Field
 from typing import TYPE_CHECKING, Any, Literal
 
 
@@ -49,7 +49,7 @@ class AgentDefinition:
     backend_api_key: str
     backend_chat_model: str
     system_prompt: str
-    enable_retrieval: bool
+    enable_tools: bool
 
 
 @dataclass
