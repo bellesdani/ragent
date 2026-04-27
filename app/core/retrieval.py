@@ -4,7 +4,7 @@ from typing import Any
 from app.core.config import Settings
 from qdrant_client import AsyncQdrantClient
 from app.core.openai import OpenAICompatClient
-from app.core.entities import ChatMessage, KnowledgeSource, RetrievalDocument, RetrievedContext
+from app.core.entities import KnowledgeSource, RetrievalDocument, RetrievedContext
 
 
 DEFAULT_TOP_K = 15
@@ -35,9 +35,9 @@ class QdrantRetriever:
         self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
 
 
-    async def retrieve(self, query: str, messages: list[ChatMessage], source_ids: list[str]) -> RetrievedContext:
-        # Primero realizamos un query understanding, actualmente muy básico
-        rewritten_query = self._rewrite_query(query, messages)
+    async def retrieve(self, query: str, source_ids: list[str]) -> RetrievedContext:
+        # Limpieza de la query básica
+        rewritten_query = self._rewrite_query(query)
 
         # Creamos el embedding
         query_vector = await self.embedding_client.create_embedding(
@@ -73,18 +73,8 @@ class QdrantRetriever:
         ]
 
 
-    def _rewrite_query(self, query: str, messages: list[ChatMessage]) -> str:
-        recent_turns = [
-            message.content
-            for message in messages[-4:]
-            if message.content and message.role in {"user", "assistant"}
-        ]
-        if len(recent_turns) <= 1:
-            return query.strip()
-        context = " ".join(recent_turns[:-1]).strip()
-        if not context:
-            return query.strip()
-        return f"Contexto conversacional: {context}\nConsulta actual: {query.strip()}"
+    def _rewrite_query(self, query: str) -> str:
+        return query.strip()
 
 
     def _point_to_document(self, point: Any, source: KnowledgeSource) -> RetrievalDocument:

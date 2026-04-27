@@ -15,18 +15,19 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
          - Direcciones de correo electrónico.
          
         Args:
-            query: Consulta a buscar en la base de conocimiento.
+            query: Consulta autónoma, concreta y optimizada para búsqueda.
+            Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
+            No uses referencias ambiguas como "su", "ese equipo", "el anterior" o "esa persona".
         """
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
             query=query,
-            messages=context.deps.messages,
             source_ids=["employees"],
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
-            lines = [f"Consulta reescrita: {retrieval.query}"]
+            lines = [f"Consulta usada: {retrieval.query}"]
             for index, document in enumerate(retrieval.documents, start=1):
                 lines.append(f"[{index}] Fuente: {document.id}")
                 # lines.append(f"[{index}] Texto: {document.text}")
@@ -56,18 +57,19 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         En algunos casos, también muestra la información del usuario que tiene asgindado, pero es posible que sea necesario realizar la búsqueda por el correo o nombre de usuario, para ello puede que sea necesario iterar con la herramienta de empleados
 
         Args:
-            query: Consulta a buscar en la base de conocimiento.
+            query: Consulta autónoma, concreta y optimizada para búsqueda.
+            Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
+            No uses referencias ambiguas como "su", "ese equipo", "el anterior" o "esa persona".
         """
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
             query=query,
-            messages=context.deps.messages,
             source_ids=["devices"],
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
-            lines = [f"Consulta reescrita: {retrieval.query}"]
+            lines = [f"Consulta usada: {retrieval.query}"]
             for index, document in enumerate(retrieval.documents, start=1):
                 lines.append(f"[{index}] Fuente: {document.id}")
                 # lines.append(f"[{index}] Texto: {document.text}")
