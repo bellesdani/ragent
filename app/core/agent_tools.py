@@ -21,6 +21,7 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             query=query,
             messages=context.deps.messages,
+            source_ids=["employees"],
         )
 
         # Prepara la información para la generación de la respuesta
@@ -61,6 +62,7 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             query=query,
             messages=context.deps.messages,
+            source_ids=["devices"],
         )
 
         # Prepara la información para la generación de la respuesta

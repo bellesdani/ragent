@@ -8,7 +8,6 @@ from app.core.entities import ChatMessage, KnowledgeSource, RetrievalDocument, R
 
 
 DEFAULT_TOP_K = 15
-DEFAULT_CONTEXT_MAX_CHARS = 12000
 DEFAULT_SEARCH_SOURCES = (
     KnowledgeSource(
         id="devices",
@@ -34,7 +33,7 @@ class QdrantRetriever:
         self.client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
         self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
 
-    async def retrieve(self, query: str, messages: list[ChatMessage]) -> RetrievedContext:
+    async def retrieve(self, query: str, messages: list[ChatMessage], source_ids: list[str]) -> RetrievedContext:
         # Primero realizamos un query understanding, actualmente muy básico
         rewritten_query = self._rewrite_query(query, messages)
 
@@ -44,10 +43,11 @@ class QdrantRetriever:
             model=self.settings.embedding_model,
         )
 
-        # En cada fuente/colección, buscamos los puntos con mayor similitud semántica
+        # En cada fuente/colección de source_ids, buscamos los puntos con mayor similitud semántica
         #  y generamos para cada punto obtenido, un documento: un punto referenciable con su payload y metadata
         documents = []
-        for source in self.sources.values():
+        for source_id in source_ids:
+            source = self.sources[source_id]
             results = await self.client.query_points(
                 collection_name=source.collection,
                 query=query_vector,
