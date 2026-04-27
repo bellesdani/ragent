@@ -27,11 +27,13 @@ DEFAULT_SEARCH_SOURCES = (
 
 
 class QdrantRetriever:
+
     def __init__(self, settings: Settings, embedding_client: OpenAICompatClient) -> None:
         self.settings = settings
         self.embedding_client = embedding_client
         self.client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
         self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
+
 
     async def retrieve(self, query: str, messages: list[ChatMessage], source_ids: list[str]) -> RetrievedContext:
         # Primero realizamos un query understanding, actualmente muy básico
@@ -59,6 +61,7 @@ class QdrantRetriever:
 
         return RetrievedContext(query=rewritten_query, documents=documents)
 
+
     def list_sources(self) -> list[dict[str, str]]:
         return [
             {
@@ -68,6 +71,7 @@ class QdrantRetriever:
             }
             for source in self.sources.values()
         ]
+
 
     def _rewrite_query(self, query: str, messages: list[ChatMessage]) -> str:
         recent_turns = [

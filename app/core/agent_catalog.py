@@ -4,6 +4,7 @@ from app.core.entities import AgentDefinition
 
 
 class AgentCatalog:
+
     def __init__(self, settings: Settings) -> None:
         self._agents = {
             "Quipi": AgentDefinition(
@@ -28,8 +29,10 @@ class AgentCatalog:
             ),
         }
 
+
     def list_agents(self) -> list[AgentDefinition]:
         return list(self._agents.values())
+
 
     def get_agent(self, agent_id: str) -> AgentDefinition:
         if agent_id in self._agents:

@@ -78,7 +78,6 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
 
 
-
 def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool_plain
     def calculator(expression: str) -> str:

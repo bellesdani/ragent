@@ -10,14 +10,17 @@ from app.core.entities import AgentDefinition, ChatMessage, ChatResult
 
 
 class ChatAgentService:
+
     def __init__(self, settings: Settings, retriever: QdrantRetriever, agent_catalog: AgentCatalog) -> None:
         self.settings = settings
         self.retriever = retriever
         self.agent_catalog = agent_catalog
         self.agent_runtime = AgentRunner(settings=settings, retriever=retriever)
 
+
     def list_agents(self) -> list[AgentDefinition]:
         return self.agent_catalog.list_agents()
+
 
     async def complete(self, model: str, messages: list[ChatMessage], temperature: float | None, max_tokens: int | None) -> ChatResult:
         agent = self.agent_catalog.get_agent(model)
