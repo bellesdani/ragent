@@ -25,7 +25,7 @@ class RetrievalDocument(BaseModel):
     id: str
     score: float
     text: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any]
 
 
 class RetrievedContext(BaseModel):

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import logging
-
 from functools import lru_cache
-from logging.config import dictConfig
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -16,18 +13,10 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = Field(default="ragent", alias="APP_NAME")
-    app_env: str = Field(default="development", alias="APP_ENV")
-    app_host: str = Field(default="0.0.0.0", alias="APP_HOST")
-    app_port: int = Field(default=8000, alias="APP_PORT")
-    log_level: str = Field(default="INFO", alias="LOG_LEVEL")
-
-    chat_provider: str = Field(alias="CHAT_PROVIDER")
     chat_api_key: str = Field(default="", alias="CHAT_API_KEY")
     chat_base_url: str = Field(alias="CHAT_BASE_URL")
     chat_model: str = Field(alias="CHAT_MODEL")
 
-    embedding_provider: str = Field(alias="EMBEDDING_PROVIDER")
     embedding_api_key: str = Field(default="", alias="EMBEDDING_API_KEY")
     embedding_base_url: str = Field(alias="EMBEDDING_BASE_URL")
     embedding_model: str = Field(alias="EMBEDDING_MODEL")
@@ -42,10 +31,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_required_values(self) -> "Settings":
         required_non_empty = {
-            "CHAT_PROVIDER": self.chat_provider,
             "CHAT_BASE_URL": self.chat_base_url,
             "CHAT_MODEL": self.chat_model,
-            "EMBEDDING_PROVIDER": self.embedding_provider,
             "EMBEDDING_BASE_URL": self.embedding_base_url,
             "EMBEDDING_MODEL": self.embedding_model,
             "QDRANT_URL": self.qdrant_url,
@@ -64,75 +51,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     return Settings()
 
-
-APP_LOGGER_NAME = "app"
-LOG_FORMAT = "%(levelname)s: [%(name)s] %(message)s"
-NOISY_LOGGERS = (
-    "httpx",
-    "httpcore",
-    "httpcore.http11",
-    "openai",
-    "openai._base_client",
-    "pydantic_ai",
-    "qdrant_client",
-    "uvicorn",
-    "uvicorn.error",
-    "uvicorn.access",
-)
-
-
-class AppDebugFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:
-        is_app_log = record.name == APP_LOGGER_NAME or record.name.startswith(f"{APP_LOGGER_NAME}.")
-        return is_app_log or record.levelno >= logging.WARNING
-
-
-def configure_logging(log_level: str) -> None:
-    level_name = (log_level or "INFO").upper()
-    app_level = logging.getLevelName(level_name)
-    if not isinstance(app_level, int):
-        app_level = logging.INFO
-
-    dictConfig(
-        {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "filters": {
-                "app_debug_filter": {
-                    "()": AppDebugFilter,
-                },
-            },
-            "formatters": {
-                "default": {
-                    "format": LOG_FORMAT,
-                },
-            },
-            "handlers": {
-                "default": {
-                    "class": "logging.StreamHandler",
-                    "level": "DEBUG",
-                    "formatter": "default",
-                    "filters": ["app_debug_filter"],
-                },
-            },
-            "root": {
-                "level": "WARNING",
-                "handlers": ["default"],
-            },
-            "loggers": {
-                APP_LOGGER_NAME: {
-                    "level": app_level,
-                    "handlers": [],
-                    "propagate": True,
-                },
-                **{
-                    logger_name: {
-                        "level": "WARNING",
-                        "handlers": [],
-                        "propagate": True,
-                    }
-                    for logger_name in NOISY_LOGGERS
-                },
-            },
-        }
-    )

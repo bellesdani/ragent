@@ -6,7 +6,7 @@ from typing import Any
 from app.core.config import Settings
 from qdrant_client import AsyncQdrantClient
 from app.core.openai import OpenAICompatClient
-from app.core.models import ChatMessage, KnowledgeSource, RetrievedContext
+from app.core.models import ChatMessage, KnowledgeSource, RetrievalDocument, RetrievedContext
 
 
 DEFAULT_TOP_K = 15
@@ -47,9 +47,10 @@ class QdrantRetriever:
             model=self.settings.embedding_model,
         )
 
+        documents = []
         # Buscamos en todas las fuentes los candidatos
-        candidates = []
         for source in self.sources.values():
+            # Buscamos los puntos con mayor similitud semántica
             results = await self.client.query_points(
                 collection_name=source.collection,
                 query=query_vector,
@@ -57,9 +58,10 @@ class QdrantRetriever:
                 with_payload=True,
             )
             points = results.points if hasattr(results, "points") else []
-            candidates.extend(points)
-       
-        return RetrievedContext(query=rewritten_query, documents=candidates)
+            # A partir del punto, generamos un documento: un punto referenciable con su payload y metadata
+            documents.extend(self._point_to_document(point, source=source) for point in points)
+
+        return RetrievedContext(query=rewritten_query, documents=documents)
 
     def list_sources(self) -> list[dict[str, str]]:
         return [
@@ -83,3 +85,13 @@ class QdrantRetriever:
         if not context:
             return query.strip()
         return f"Contexto conversacional: {context}\nConsulta actual: {query.strip()}"
+
+
+    def _point_to_document(self, point: Any, source: KnowledgeSource) -> RetrievalDocument:
+        payload = dict(point.payload)
+        return RetrievalDocument(
+            id=f"{source.id}:{point.id}",
+            score=float(point.score),
+            text=payload["content"],
+            metadata=payload["metadata"],
+        )

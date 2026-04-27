@@ -24,7 +24,7 @@ class AgentCatalog:
                 backend_base_url=settings.chat_base_url,
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
-                system_prompt=load_prompt("agents/quipi_system.md"),
+                system_prompt=load_prompt("quipi_system.md"),
                 enable_retrieval=True,
             ),
             "Base": AgentDefinition(
@@ -34,7 +34,7 @@ class AgentCatalog:
                 backend_base_url=settings.chat_base_url,
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
-                system_prompt=load_prompt("agents/base_system.md"),
+                system_prompt=load_prompt("base_system.md"),
                 enable_retrieval=False,
             ),
         }
@@ -178,50 +178,53 @@ def merge_instructions(base_instructions: str, extra_instruction: str) -> str:
 
 def register_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool
-    async def search_sources(ctx: RunContext[AgentDeps], query: str) -> str:
+    async def search_sources(context: RunContext[AgentDeps], query: str) -> str:
         """
         Busca informacion en Qdrant usando una o varias colecciones.
 
         Args:
             query: Consulta a buscar en la base de conocimiento.
-            source_ids: Lista opcional de colecciones a consultar. Si se omite, busca en todas.
         """
-        retrieval = await ctx.deps.retriever.retrieve(
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
             query=query,
-            messages=ctx.deps.messages,
+            messages=context.deps.messages,
         )
-        if not retrieval.documents:
-            return "No se encontro evidencia relevante en las fuentes solicitadas."
 
-        lines = [f"Consulta reescrita: {retrieval.query}"]
-        for index, document in enumerate(retrieval.documents, start=1):
-            source = (
-                document.metadata.get("source_name")
-                or document.metadata.get("collection")
-                or document.id
-            )
-            lines.append(f"[{index}] Fuente: {source}")
-            lines.append(f"[{index}] Score: {document.score:.4f}")
-            lines.append(f"[{index}] Texto: {document.text}")
-        return "\n".join(lines)
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = [f"Consulta reescrita: {retrieval.query}"]
+            for index, document in enumerate(retrieval.documents, start=1):
+                lines.append(f"[{index}] Fuente: {document.id}")
+                # lines.append(f"[{index}] Texto: {document.text}")
+                # lines.append(f"[{index}] Score: {document.score}")
+                lines.append(f"[{index}] Texto: {document.metadata}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
 
 
 def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool_plain
     def calculator(expression: str) -> str:
         """
-        Evalua una expresion aritmetica simple.
+        Evalúa una expresion aritmetica simple.
 
         Args:
-            expression: Expresion matematica usando numeros, parentesis y operadores basicos.
+            expression: Expresión matemática usando números, paréntesis y operadores básicos.
         """
+        # Validación de la expresión
         if not expression.strip():
-            raise ModelRetry("La expresion no puede estar vacia.")
+            raise ModelRetry("La expresión no puede estar vacía.")
+        
         if any(char not in "0123456789+-*/()., %\t\n" for char in expression):
-            raise ModelRetry("La expresion contiene caracteres no permitidos.")
+            raise ModelRetry("La expresión contiene caracteres no permitidos.")
+        
+        # Normalización y ejecución de las operaciones artiméticas
         normalized = expression.replace(",", ".")
         try:
             result = eval(normalized, {"__builtins__": {}}, {})
-        except Exception as exc:  # pragma: no cover - depende de la expresion del usuario
-            raise ModelRetry(f"No se pudo evaluar la expresion: {exc}") from exc
+        except Exception as exc:
+            raise ModelRetry(f"No se pudo evaluar la expresión: {exc}") from exc
         return str(result)

@@ -47,10 +47,8 @@ class ChatCompletionResponse(BaseModel):
 
 class ModelCard(BaseModel):
     id: str
-    object: Literal["model"] = "model"
-    created: int = Field(default_factory=lambda: int(time.time()))
-    owned_by: str
-    description: str | None = None
+    name: str
+    description: str
 
 
 class ModelListResponse(BaseModel):

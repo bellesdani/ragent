@@ -10,10 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAICompatClient:
-    def __init__(self, base_url: str, api_key: str, timeout: float, provider: str) -> None:
+    def __init__(self, base_url: str, api_key: str, timeout: float) -> None:
         headers = {"Content-Type": "application/json"}
         headers["Authorization"] = f"Bearer {api_key}"
-        self.provider = provider
         self.client = httpx.AsyncClient(
             base_url=base_url.rstrip("/") + "/",
             timeout=timeout,

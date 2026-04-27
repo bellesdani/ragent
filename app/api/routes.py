@@ -27,8 +27,8 @@ def create_router(settings: Settings, chat_service: ChatAgentService) -> APIRout
             data=[
                 ModelCard(
                     id=agent.agent_id,
-                    owned_by=settings.app_name,
-                    description=agent.description or agent.name,
+                    name=agent.name,
+                    description=agent.description,
                 )
                 for agent in chat_service.list_agents()
             ]

@@ -34,7 +34,6 @@ def build_chat_service(settings: Settings) -> ChatAgentService:
         base_url=settings.embedding_base_url,
         api_key=settings.embedding_api_key,
         timeout=settings.llm_timeout_seconds,
-        provider=settings.embedding_provider,
     )
     retriever = QdrantRetriever(settings=settings, embedding_client=embedding_client)
     return ChatAgentService(
