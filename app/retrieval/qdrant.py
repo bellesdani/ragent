@@ -3,25 +3,49 @@ from __future__ import annotations
 import logging
 
 from typing import Any
+from dataclasses import dataclass
 from app.config.config import Settings
 from qdrant_client import AsyncQdrantClient
-from app.retrieval.base import BaseRetriever
-from app.api.schemas.openai import ChatMessage, RetrievalDocument, RetrievedContext
 from app.llm.openai_compat import OpenAICompatClient
-from app.retrieval.config import (
-    DEFAULT_CONTEXT_MAX_CHARS,
-    DEFAULT_PAYLOAD_TEXT_KEYS,
-    DEFAULT_SCORE_THRESHOLD,
-    DEFAULT_SEARCH_SOURCES,
-    DEFAULT_TOP_K,
-    KnowledgeSource,
+from app.api.schemas.openai import ChatMessage, RetrievalDocument, RetrievedContext
+
+
+DEFAULT_TOP_K = 15
+DEFAULT_SCORE_THRESHOLD = 0.5
+DEFAULT_CONTEXT_MAX_CHARS = 12000
+DEFAULT_PAYLOAD_TEXT_KEYS = ("text", "content", "chunk", "page_content") # TODO: Revisar esto, creo que la clave está aquí
+
+
+@dataclass(frozen=True)
+class KnowledgeSource:
+    id: str
+    name: str
+    description: str
+    collection: str
+    vector_name: str | None = None
+
+
+DEFAULT_SEARCH_SOURCES = (
+    KnowledgeSource(
+        id="devices",
+        name="Devices",
+        description="Información sobre los dispositivos de la empresa, tales como servidores y equipos de usuario y de planta.",
+        collection="devices",
+    ),
+    KnowledgeSource(
+        id="employees",
+        name="Employees",
+        description="Información sobre los empleados de la empresa y su contacto corporativo, como correo electronico, telefono y extension.",
+        collection="employees",
+    ),
 )
+
 
 
 logger = logging.getLogger(__name__)
 
 
-class QdrantRetriever(BaseRetriever):
+class QdrantRetriever():
     def __init__(self, settings: Settings, embedding_client: OpenAICompatClient) -> None:
         self.settings = settings
         self.embedding_client = embedding_client
@@ -32,6 +56,7 @@ class QdrantRetriever(BaseRetriever):
         return await self.retrieve_from_sources(query=query, messages=messages, source_ids=None)
 
     async def retrieve_from_sources(self, query: str, messages: list[ChatMessage], source_ids: list[str] | None = None) -> RetrievedContext:
+        # Reescribe la consulta, basándose en el histórico, no solo en la última pregunta
         rewritten_query = self._rewrite_query(query, messages)
         logger.debug(
             "Starting retrieval from sources | query=%s rewritten_query=%s source_ids=%s",
@@ -39,12 +64,14 @@ class QdrantRetriever(BaseRetriever):
             rewritten_query,
             source_ids,
         )
+        # Generamos el embedding
         query_vector = await self.embedding_client.create_embedding(
             input_text=rewritten_query,
             model=self.settings.embedding_model,
         )
-        selected_sources = self._resolve_sources(source_ids)
+        # Preparamos los documentos y resolvemos las colecciones donde buscar 
         documents: list[RetrievalDocument] = []
+        selected_sources = self._resolve_sources(source_ids)
         for source in selected_sources:
             logger.debug(
                 "Querying Qdrant source | source_id=%s collection=%s vector_name=%s",
@@ -52,6 +79,7 @@ class QdrantRetriever(BaseRetriever):
                 source.collection,
                 source.vector_name,
             )
+            # Para cada posible fuente/colección
             search_kwargs: dict[str, Any] = {
                 "collection_name": source.collection,
                 "query": query_vector,
@@ -60,6 +88,12 @@ class QdrantRetriever(BaseRetriever):
                 "score_threshold": DEFAULT_SCORE_THRESHOLD,
             }
             if source.vector_name:
+                logger.debug(
+                    "Using named vector for Qdrant search | source=%s collection=%s vector_name=%s",
+                    source.id,
+                    source.collection,
+                    source.vector_name,
+                )
                 search_kwargs["using"] = source.vector_name
             results = await self.client.query_points(**search_kwargs)
             points = results.points if hasattr(results, "points") else []
@@ -76,7 +110,7 @@ class QdrantRetriever(BaseRetriever):
                     "score": document.score,
                     "text_preview": document.text[:200],
                 }
-                for document in documents[:3]
+                for document in documents
             ],
         )
         return RetrievedContext(query=rewritten_query, documents=documents)
@@ -92,6 +126,7 @@ class QdrantRetriever(BaseRetriever):
         ]
 
     def _rewrite_query(self, query: str, messages: list[ChatMessage]) -> str:
+        # TODO: Revisar esto, creo que estaría mejor pedirle al modelo que resuma la intención
         recent_turns = [
             message.content
             for message in messages[-4:]
@@ -105,6 +140,7 @@ class QdrantRetriever(BaseRetriever):
         return f"Contexto conversacional: {context}\nConsulta actual: {query.strip()}"
 
     def _point_to_document(self, point: Any, source: KnowledgeSource) -> RetrievalDocument:
+        # TODO: Revisar esto
         payload = dict(point.payload or {})
         text = self._extract_text(payload)
         metadata = self._extract_metadata(payload, source)
@@ -116,6 +152,7 @@ class QdrantRetriever(BaseRetriever):
         )
 
     def _extract_text(self, payload: dict[str, Any]) -> str:
+        # TODO: Revisar esto, OJO!!!
         for key in DEFAULT_PAYLOAD_TEXT_KEYS:
             value = payload.get(key)
             if isinstance(value, str) and value.strip():

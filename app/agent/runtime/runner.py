@@ -3,8 +3,8 @@ from __future__ import annotations
 from app.agent.deps import AgentDeps
 from app.config.config import Settings
 from pydantic_ai.usage import UsageLimits
-from app.retrieval.base import BaseRetriever
 from pydantic_ai.settings import ModelSettings
+from app.retrieval.qdrant import QdrantRetriever
 from app.agent.definitions import AgentDefinition
 from app.agent.runtime.factory import AgentFactory
 from app.agent.runtime.messages import split_messages
@@ -12,7 +12,7 @@ from app.api.schemas.openai import ChatCompletionUsage, ChatMessage
 
 
 class AgentRunner:
-    def __init__(self, settings: Settings, retriever: BaseRetriever) -> None:
+    def __init__(self, settings: Settings, retriever: QdrantRetriever) -> None:
         self.settings = settings
         self.retriever = retriever
         self.factory = AgentFactory(settings)
