@@ -5,7 +5,6 @@ from app.core.config import Settings
 from app.core.openai import OpenAICompatClient
 from app.core.retrieval import QdrantRetriever
 from app.core.agent_catalog import AgentCatalog
-
 from app.core.entities import AgentDefinition, ChatMessage, ChatResult
 
 
