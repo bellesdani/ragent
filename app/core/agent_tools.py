@@ -1,46 +1,89 @@
 import re
 
+from typing import Optional
 from datetime import datetime
 from app.core.entities import AgentDeps
-from qdrant_client.models import FieldCondition, Filter, MatchAny
 from pydantic_ai import Agent, ModelRetry, RunContext
+from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchText
 
 
 def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool
-    async def search_employees(context: RunContext[AgentDeps], query: str) -> str:
+    async def search_employees(context: RunContext[AgentDeps], query: str, department: Optional[str] = None) -> str:
         """
-        Esta herramienta permite recuperar de una colección de Qdrant información sobre los empleados y compañeros de la empresa.
-        Permite obtener información básica del empleado, como por ejemplo:
+        Recupera información sobre empleados y compañeros de la empresa.
+
+        Permite obtener información básica del empleado:
          - Nombre y apellidos.
          - Departamento.
-        Permite obtener la información de contacto, como por ejemplo:
+
+        Permite obtener información de contacto:
          - Números de teléfono y extensión.
          - Direcciones de correo electrónico.
-         
+
         Args:
             query: Consulta autónoma, concreta y optimizada para búsqueda.
-            Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
-            No uses referencias ambiguas como "su", "ese equipo", "el anterior" o "esa persona".
+                Si la pregunta del usuario depende del historial, incorpora el contexto relevante.
+                No uses referencias ambiguas como "su", "ese equipo", "el anterior" o "esa persona".
+
+            department: Departamento por el que filtrar cuando el usuario lo mencione explícita o implícitamente. 
+                    Usa uno de estos valores base: "Informática", "Mantenimiento", "Comunicación", "Sostenibilidad", "Producción", "Finanzas", "Administración", "Comercial", "Suministros", "Diseño", "Prevención", "Logística", "Recursos Humanos", "Marketing", "Muestras", "Calidad", "Taller", "Gerencia"
+                    Si no hay un departamento claro, deja este parámetro como None.
         """
+
+        # Prepara el filtro de Qdrant por departamento y lo valida si es necesario
+        qdrant_filter = None
+        allowed_departments = set(["Informática", 
+                                   "Mantenimiento", 
+                                   "Comunicación",
+                                   "Sostenibilidad",
+                                   "Producción",
+                                   "Finanzas",
+                                   "Administración",
+                                   "Comercial",
+                                   "Suministros",
+                                   "Diseño",
+                                   "Prevención",
+                                   "Logística",
+                                   "Recursos Humanos",
+                                   "Marketing",
+                                   "Muestras",
+                                   "Calidad",
+                                   "Taller",
+                                   "Gerencia",
+                                   ])
+        if department and department in allowed_departments:
+            qdrant_filter = Filter(
+                must=[
+                    FieldCondition(
+                        key="metadata.department",
+                        match=MatchText(text=department),
+                    )
+                ]
+            )
+
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
             query=query,
             source_ids=["employees"],
+            query_filter=qdrant_filter,
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
             lines = [f"Consulta usada: {retrieval.query}"]
+            if department:
+                lines.append(f"Filtro aplicado: department = {department}")
             for index, document in enumerate(retrieval.documents, start=1):
                 # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
                 #  ya que metadata guarda el json de cada empleado y puede tener datos más interesantes que el propio content
                 lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
+            print("\n".join(lines))
             return "\n".join(lines)
-        else:
-            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
+        return "No se encontró evidencia relevante en las fuentes solicitadas."
 
 
 def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
