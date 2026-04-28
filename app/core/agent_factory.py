@@ -6,6 +6,7 @@ from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from app.core.entities import AgentDefinition, AgentDeps
 from app.core.agent_tools import (
+    register_datetime_tool,
     register_calculator_tool, 
     register_devices_retrieval_tool,
     register_manuals_retrieval_tool,
@@ -48,5 +49,6 @@ class AgentFactory:
             register_devices_retrieval_tool(agent)
             register_manuals_retrieval_tool(agent)
             register_calculator_tool(agent)
+            register_datetime_tool(agent)
 
         return agent

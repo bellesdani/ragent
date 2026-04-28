@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.core.entities import AgentDeps
 from pydantic_ai import Agent, ModelRetry, RunContext
 
@@ -114,6 +115,7 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
 
+
 def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool_plain
     def calculator(expression: str) -> str:
@@ -137,3 +139,13 @@ def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
         except Exception as exc:
             raise ModelRetry(f"No se pudo evaluar la expresión: {exc}") from exc
         return str(result)
+
+
+def register_datetime_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool_plain
+    def get_current_time() -> datetime:
+        """
+        Devuelve la hora exacta actual.
+        """
+        return datetime.now()
+    
