@@ -1,5 +1,8 @@
+import re
+
 from datetime import datetime
 from app.core.entities import AgentDeps
+from qdrant_client.models import FieldCondition, Filter, MatchAny
 from pydantic_ai import Agent, ModelRetry, RunContext
 
 
@@ -32,6 +35,7 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             for index, document in enumerate(retrieval.documents, start=1):
                 # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
                 #  ya que metadata guarda el json de cada empleado y puede tener datos más interesantes que el propio content
+                lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
             return "\n".join(lines)
@@ -82,6 +86,57 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
 
 
+def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool
+    async def search_devices_by_ip_address(context: RunContext[AgentDeps], ip_addresses: str) -> str:
+        """
+        Esta herramienta permite recuperar de una colección de Qdrant información sobre los equipos, y ordenadores de la empresa a partir de una o varias direcciones IP.
+        Permite obtener información específica sobre esos dispositivos de forma más fiable que la búsqueda genérica en los dispositivos.
+
+        Args:
+            ip_addresses: Texto que contiene una o varias IPs (ej: "192.168.1.10, 10.0.0.5")
+        """
+        # Validación de la lista de IPs
+        ip_pattern = (
+            r"\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}"
+            r"(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\b"
+        )
+        valid_ips = list(dict.fromkeys(re.findall(ip_pattern, ip_addresses)))
+        if not valid_ips:
+            raise ModelRetry("No se han encontrado direcciones IP válidas en la consulta.")
+
+        # Construimos el filtro de Qdrant
+        qdrant_filter = Filter(
+            must=[
+                FieldCondition(
+                    key="metadata.ips",
+                    match=MatchAny(any=valid_ips)
+                )
+            ]
+        )
+
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
+            query=", ".join(valid_ips),
+            source_ids=["devices"],
+            filter=qdrant_filter,
+        )
+
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = [f"Consulta usada: {retrieval.query}"]
+            for index, document in enumerate(retrieval.documents, start=1):
+                # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
+                #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
+                lines.append(f"")
+                lines.append(f"[{index}] Fuente: {document.id}")
+                lines.append(f"[{index}] Contenido: {document.metadata}")
+                # lines.append(f"[{index}] Contenido: {document.text}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
+
 def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool
     async def search_manuals(context: RunContext[AgentDeps], query: str) -> str:
@@ -108,6 +163,7 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         if retrieval.documents:
             lines = [f"Consulta usada: {retrieval.query}"]
             for index, document in enumerate(retrieval.documents, start=1):
+                lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.text}")
                 lines.append(f"[{index}] Metadata: {document.metadata}")
