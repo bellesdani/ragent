@@ -80,7 +80,6 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
                 lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
-            print("\n".join(lines))
             return "\n".join(lines)
 
         return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -162,6 +161,111 @@ def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
             query=", ".join(valid_ips),
+            source_ids=["devices"],
+            query_filter=qdrant_filter,
+        )
+
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = [f"Consulta usada: {retrieval.query}"]
+            for index, document in enumerate(retrieval.documents, start=1):
+                # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
+                #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
+                lines.append(f"")
+                lines.append(f"[{index}] Fuente: {document.id}")
+                lines.append(f"[{index}] Contenido: {document.metadata}")
+                # lines.append(f"[{index}] Contenido: {document.text}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
+
+def register_mac_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool
+    async def search_devices_by_mac_address(context: RunContext[AgentDeps], mac_addresses: str) -> str:
+        """
+        Esta herramienta permite recuperar de una colección de Qdrant información sobre los equipos, y ordenadores de la empresa a partir de una o varias direcciones MAC.
+        Permite obtener información específica sobre esos dispositivos de forma más fiable que la búsqueda genérica en los dispositivos.
+
+        Args:
+            mac_addresses: Texto que contiene una o varias direcciones MAC (ej: "D4:E9:8A:D9:90:2C, 3C:0A:F3:0F:B9:21")
+        """
+        # Validación de la lista de direcciones MAC
+        mac_pattern = (
+            r"\b(?:[0-9A-Fa-f]{2}([-:]))(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}\b"
+            r"|\b[0-9A-Fa-f]{12}\b"
+        )
+        valid_macs = list(dict.fromkeys(match.group(0) for match in re.finditer(mac_pattern, mac_addresses)))
+        if not valid_macs:
+            raise ModelRetry("No se han encontrado direcciones IP válidas en la consulta.")
+
+        # Construimos el filtro de Qdrant
+        qdrant_filter = Filter(
+            must=[
+                FieldCondition(
+                    key="metadata.mac_addresses",
+                    match=MatchAny(any=valid_macs)
+                )
+            ]
+        )
+
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
+            query=", ".join(valid_macs),
+            source_ids=["devices"],
+            query_filter=qdrant_filter,
+        )
+
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = [f"Consulta usada: {retrieval.query}"]
+            for index, document in enumerate(retrieval.documents, start=1):
+                # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
+                #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
+                lines.append(f"")
+                lines.append(f"[{index}] Fuente: {document.id}")
+                lines.append(f"[{index}] Contenido: {document.metadata}")
+                # lines.append(f"[{index}] Contenido: {document.text}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
+
+def register_serial_number_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool
+    async def search_devices_by_serial_number(context: RunContext[AgentDeps], serial_numbers: str) -> str:
+        """
+        Esta herramienta permite recuperar de una colección de Qdrant información sobre los equipos, y ordenadores de la empresa a partir de uno o varios números de serie.
+        Permite obtener información específica sobre esos dispositivos de forma más fiable que la búsqueda genérica en los dispositivos.
+
+        Args:
+            serial_numbers: Texto que contiene uno o varios números de serie (ej: "17JWE88D0XXC25D0080, 451444HH1NYX8")
+        """
+        # Normalización de la lista de números de serie
+        normalized_serial_numbers = list(
+            dict.fromkeys(
+                sn.strip().upper()
+                for sn in re.split(r"[\s,;]+", serial_numbers)
+                if sn.strip()
+            )
+        )
+
+        if not normalized_serial_numbers:
+            raise ModelRetry("No se han encontrado números de serie válidos en la consulta.")
+        
+        # Construimos el filtro de Qdrant
+        qdrant_filter = Filter(
+            must=[
+                FieldCondition(
+                    key="metadata.serial_number",
+                    match=MatchAny(any=normalized_serial_numbers)
+                )
+            ]
+        )
+
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
+            query=", ".join(normalized_serial_numbers),
             source_ids=["devices"],
             query_filter=qdrant_filter,
         )
