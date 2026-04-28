@@ -37,7 +37,7 @@ class AgentFactory:
             ),
         )
         # Definimos el agente, con el modelo indicado y el prompt
-        agent = Agent(
+        agent: Agent[AgentDeps, str] = Agent(
             model=model,
             instructions=definition.system_prompt,
             output_type=str,
