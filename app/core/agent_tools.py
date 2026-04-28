@@ -78,6 +78,7 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             for index, document in enumerate(retrieval.documents, start=1):
                 # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
                 #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
+                lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
                 # lines.append(f"[{index}] Contenido: {document.text}")
@@ -119,7 +120,7 @@ def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             query=", ".join(valid_ips),
             source_ids=["devices"],
-            filter=qdrant_filter,
+            query_filter=qdrant_filter,
         )
 
         # Prepara la información para la generación de la respuesta

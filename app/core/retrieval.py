@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from app.core.config import Settings
+from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
 from app.core.openai import OpenAICompatClient
 from app.core.entities import KnowledgeSource, RetrievalDocument, RetrievedContext
@@ -41,7 +42,7 @@ class QdrantRetriever:
         self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
 
 
-    async def retrieve(self, query: str, source_ids: list[str]) -> RetrievedContext:
+    async def retrieve(self, query: str, source_ids: list[str], query_filter: Filter | None = None) -> RetrievedContext:
         # Limpieza de la query básica
         rewritten_query = self._rewrite_query(query)
 
@@ -61,6 +62,7 @@ class QdrantRetriever:
                 query=query_vector,
                 limit=DEFAULT_TOP_K,
                 with_payload=True,
+                query_filter=query_filter,
             )
             points = results.points if hasattr(results, "points") else []
             documents.extend(self._point_to_document(point, source=source) for point in points)
