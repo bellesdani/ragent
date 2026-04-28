@@ -8,6 +8,7 @@ from app.core.entities import AgentDefinition, AgentDeps
 from app.core.agent_tools import (
     register_calculator_tool, 
     register_devices_retrieval_tool,
+    register_manuals_retrieval_tool,
     register_employees_retrieval_tool,
 )
 
@@ -45,6 +46,7 @@ class AgentFactory:
         if definition.enable_tools:
             register_employees_retrieval_tool(agent)
             register_devices_retrieval_tool(agent)
+            register_manuals_retrieval_tool(agent)
             register_calculator_tool(agent)
 
         return agent

@@ -29,10 +29,10 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         if retrieval.documents:
             lines = [f"Consulta usada: {retrieval.query}"]
             for index, document in enumerate(retrieval.documents, start=1):
+                # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
+                #  ya que metadata guarda el json de cada empleado y puede tener datos más interesantes que el propio content
                 lines.append(f"[{index}] Fuente: {document.id}")
-                # lines.append(f"[{index}] Texto: {document.text}")
-                # lines.append(f"[{index}] Score: {document.score}")
-                lines.append(f"[{index}] Texto: {document.metadata}")
+                lines.append(f"[{index}] Contenido: {document.metadata}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -71,14 +71,48 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         if retrieval.documents:
             lines = [f"Consulta usada: {retrieval.query}"]
             for index, document in enumerate(retrieval.documents, start=1):
+                # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
+                #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
                 lines.append(f"[{index}] Fuente: {document.id}")
-                # lines.append(f"[{index}] Texto: {document.text}")
-                # lines.append(f"[{index}] Score: {document.score}")
-                lines.append(f"[{index}] Texto: {document.metadata}")
+                lines.append(f"[{index}] Contenido: {document.metadata}")
+                # lines.append(f"[{index}] Contenido: {document.text}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
 
+
+def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool
+    async def search_manuals(context: RunContext[AgentDeps], query: str) -> str:
+        """
+        Esta herramienta permite recuperar de una colección de Qdrant información sobre manuales y operativas habituales registradas de la empresa.
+        Algunos ejemplos son: de manuales del Forti, EtiPrinter, EtiPistola, e incluso del propio ERP (EKON):
+         - Manual oficial del Forti, nuestro Firewall. 
+         - Manual de uso de herramientas internas como EtiPrinter, EtiPistola, etc.
+         - Manual de operativas habituales a través del propio ERP, llamado Ekon.
+         - Manuales de gestión de dispositivos en RED desde el programa UniFi
+
+        Args:
+            query: Consulta autónoma, concreta y optimizada para búsqueda.
+            Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
+            No uses referencias ambiguas como "el anterior", "esa herramienta" o "ese programa".
+        """
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
+            query=query,
+            source_ids=["manuals"],
+        )
+
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = [f"Consulta usada: {retrieval.query}"]
+            for index, document in enumerate(retrieval.documents, start=1):
+                lines.append(f"[{index}] Fuente: {document.id}")
+                lines.append(f"[{index}] Contenido: {document.text}")
+                lines.append(f"[{index}] Metadata: {document.metadata}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
 
 def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool_plain

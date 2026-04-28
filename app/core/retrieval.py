@@ -21,6 +21,12 @@ DEFAULT_SEARCH_SOURCES = (
         description="Informacion sobre empleados y su contacto corporativo: correo, telefono y extension.",
         collection="employees",
     ),
+    KnowledgeSource(
+        id="manuals",
+        name="Manuals",
+        description="Informacion sobre manuales de software y operativas habituales dentro de la empresa.",
+        collection="manuals",
+    ),
 )
 
 
