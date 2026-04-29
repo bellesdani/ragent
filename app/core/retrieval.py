@@ -13,19 +13,19 @@ DEFAULT_SEARCH_SOURCES = (
     KnowledgeSource(
         id="devices",
         name="Devices",
-        description="Informacion sobre dispositivos de la empresa, como servidores y equipos de usuario y planta.",
+        description="Información sobre dispositivos de la empresa, como servidores y equipos de usuario y planta.",
         collection="devices",
     ),
     KnowledgeSource(
         id="employees",
         name="Employees",
-        description="Informacion sobre empleados y su contacto corporativo: correo, telefono y extension.",
+        description="Información sobre empleados y su contacto corporativo: correo, teléfono y extensión.",
         collection="employees",
     ),
     KnowledgeSource(
         id="manuals",
         name="Manuals",
-        description="Informacion sobre manuales de software y operativas habituales dentro de la empresa.",
+        description="Información sobre manuales de software y operativas habituales dentro de la empresa.",
         collection="manuals",
     ),
 )
