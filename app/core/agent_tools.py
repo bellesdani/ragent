@@ -2,6 +2,7 @@ import re
 
 from typing import Optional
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from app.core.entities import AgentDeps
 from pydantic_ai import Agent, ModelRetry, RunContext
 from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchText
@@ -349,7 +350,7 @@ def register_datetime_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool_plain
     def get_current_time() -> datetime:
         """
-        Devuelve la hora exacta actual.
+        Esta herramienta devuelve el día y la hora exacta actual.
         """
-        return datetime.now()
+        return datetime.now(ZoneInfo("Europe/Madrid"))
     
