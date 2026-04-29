@@ -198,7 +198,7 @@ def register_mac_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         )
         valid_macs = list(dict.fromkeys(match.group(0) for match in re.finditer(mac_pattern, mac_addresses)))
         if not valid_macs:
-            raise ModelRetry("No se han encontrado direcciones IP válidas en la consulta.")
+            raise ModelRetry("No se han encontrado direcciones MAC válidas en la consulta.")
 
         # Construimos el filtro de Qdrant
         qdrant_filter = Filter(
