@@ -327,6 +327,7 @@ def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         """
         Esta herramienta permite recuperar de una colección de Qdrant información sobre las incidencias (tickets) registrados a través de HelpDesk.
         Permite obtener posibles soluciones a problemas ya resueltos o buscar información sobre indidencias registradas.
+        También puede ser una fuente de información alternativa a los manuales si en esta fuente de datos no se encontrase información.
 
         Args:
             query: Consulta autónoma, concreta y optimizada para búsqueda.
