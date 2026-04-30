@@ -12,6 +12,7 @@ from app.core.agent_tools import (
     register_mac_retrieval_tool,
     register_devices_retrieval_tool,
     register_manuals_retrieval_tool,
+    register_tickets_retrieval_tool,
     register_employees_retrieval_tool,
     register_serial_number_retrieval_tool,
 )
@@ -52,6 +53,7 @@ class AgentFactory:
             register_employees_retrieval_tool(agent)
             register_devices_retrieval_tool(agent)
             register_manuals_retrieval_tool(agent)
+            register_tickets_retrieval_tool(agent)
             register_mac_retrieval_tool(agent)
             register_ip_retrieval_tool(agent)
             register_calculator_tool(agent)

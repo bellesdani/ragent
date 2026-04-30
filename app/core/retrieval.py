@@ -28,6 +28,12 @@ DEFAULT_SEARCH_SOURCES = (
         description="Información sobre manuales de software y operativas habituales dentro de la empresa.",
         collection="manuals",
     ),
+    KnowledgeSource(
+        id="tickets",
+        name="Tickets",
+        description="Información sobre los tickets registrados en Helpdesk.",
+        collection="tickets",
+    ),
 )
 
 

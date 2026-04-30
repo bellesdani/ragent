@@ -321,6 +321,37 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
 
 
+def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool
+    async def search_tickets(context: RunContext[AgentDeps], query: str) -> str:
+        """
+        Esta herramienta permite recuperar de una colección de Qdrant información sobre las incidencias (tickets) registrados a través de HelpDesk.
+        Permite obtener posibles soluciones a problemas ya resueltos o buscar información sobre indidencias registradas.
+
+        Args:
+            query: Consulta autónoma, concreta y optimizada para búsqueda.
+            Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
+            No uses referencias ambiguas como "el anterior", "esa herramienta" o "ese programa".
+        """
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
+            query=query,
+            source_ids=["tickets"],
+        )
+
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = [f"Consulta usada: {retrieval.query}"]
+            for index, document in enumerate(retrieval.documents, start=1):
+                lines.append("")
+                lines.append(f"[{index}] Fuente: {document.id}")
+                lines.append(f"[{index}] Contenido: {document.text}")
+                lines.append(f"[{index}] Metadata: {document.metadata}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
+
 def register_calculator_tool(agent: Agent[AgentDeps, str]) -> None:
     @agent.tool_plain
     def calculator(expression: str) -> str:
