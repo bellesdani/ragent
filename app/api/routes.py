@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from app.core.chat import ChatAgentService
 from app.core.config import Settings
+from app.core.entities import ChatCompletionUsage
 from app.api.schemas import (
     ChatCompletionChoiceMessage,
     ChatCompletionRequest,
@@ -31,7 +32,7 @@ def chunk_text(content: str, size: int = 80) -> list[str]:
     return [content[index:index + size] for index in range(0, len(content), size)]
 
 
-async def stream_chat_completion(model: str, content: str) -> AsyncIterator[str]:
+async def stream_chat_completion(model: str, content: str, usage: ChatCompletionUsage) -> AsyncIterator[str]:
     completion_id = f"chatcmpl-{uuid.uuid4().hex}"
     created = int(time.time())
 
@@ -84,6 +85,16 @@ async def stream_chat_completion(model: str, content: str) -> AsyncIterator[str]
             ],
         }
     )
+    yield sse_data(
+        {
+            "id": completion_id,
+            "object": "chat.completion.chunk",
+            "created": created,
+            "model": model,
+            "choices": [],
+            "usage": usage.model_dump(),
+        }
+    )
     yield sse_data("[DONE]")
 
 
@@ -122,7 +133,7 @@ def create_router(settings: Settings, chat_service: ChatAgentService) -> APIRout
         if request.stream:
             # Voy a simular un formato de respuesta en Streaming por temas de compatibilidad con N8N
             return StreamingResponse(
-                stream_chat_completion(model=result.model, content=result.content),
+                stream_chat_completion(model=result.model, content=result.content, usage=result.usage),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
