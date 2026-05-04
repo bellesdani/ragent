@@ -17,16 +17,16 @@ class AgentCatalog:
                 system_prompt=load_prompt("quipi_system.md"),
                 enable_tools=True,
             ),
-            "Base": AgentDefinition(
-                agent_id="Base",
-                name="Base",
-                description="Agente conversacional basico sin conexiones a herramientas de busqueda.",
-                backend_base_url=settings.chat_base_url,
-                backend_api_key=settings.chat_api_key,
-                backend_chat_model=settings.chat_model,
-                system_prompt=load_prompt("base_system.md"),
-                enable_tools=False,
-            ),
+            # "Base": AgentDefinition(
+            #     agent_id="Base",
+            #     name="Base",
+            #     description="Agente conversacional basico sin conexiones a herramientas de busqueda.",
+            #     backend_base_url=settings.chat_base_url,
+            #     backend_api_key=settings.chat_api_key,
+            #     backend_chat_model=settings.chat_model,
+            #     system_prompt=load_prompt("base_system.md"),
+            #     enable_tools=False,
+            # ),
         }
 
 
