@@ -1,6 +1,6 @@
 from pydantic_ai import Agent
 from openai import AsyncOpenAI
-from app.core.config import Settings
+from app.config import Settings
 from pydantic_ai.settings import ModelSettings
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider

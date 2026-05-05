@@ -1,51 +1,20 @@
-from __future__ import annotations
-
 from typing import Any
-from app.core.config import Settings
+from app.config import Settings
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
 from app.core.openai import OpenAICompatClient
+from app.core.qdrant_knowledge_sources import QdrantKnowledgeSourceCatalog
 from app.core.entities import KnowledgeSource, RetrievalDocument, RetrievedContext
-
-
-DEFAULT_TOP_K = 15
-DEFAULT_SEARCH_SOURCES = (
-    KnowledgeSource(
-        id="devices",
-        name="Devices",
-        description="Información sobre dispositivos de la empresa, como servidores y equipos de usuario y planta.",
-        collection="devices",
-    ),
-    KnowledgeSource(
-        id="employees",
-        name="Employees",
-        description="Información sobre empleados y su contacto corporativo: correo, teléfono y extensión.",
-        collection="employees",
-    ),
-    KnowledgeSource(
-        id="manuals",
-        name="Manuals",
-        description="Información sobre manuales de software y operativas habituales dentro de la empresa.",
-        collection="manuals",
-    ),
-    KnowledgeSource(
-        id="tickets",
-        name="Tickets",
-        description="Información sobre los tickets registrados en Helpdesk.",
-        collection="tickets",
-    ),
-)
-
-
 
 
 class QdrantRetriever:
 
     def __init__(self, settings: Settings, embedding_client: OpenAICompatClient) -> None:
+        self.default_top_k = 15
         self.settings = settings
         self.embedding_client = embedding_client
         self.client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
-        self.sources = {source.id: source for source in DEFAULT_SEARCH_SOURCES}
+        self.knowledge_sources = QdrantKnowledgeSourceCatalog().get_knowledge_sources_by_id()
 
 
     async def retrieve(self, query: str, source_ids: list[str], query_filter: Filter | None = None) -> RetrievedContext:
@@ -62,11 +31,11 @@ class QdrantRetriever:
         #  y generamos para cada punto obtenido, un documento: un punto referenciable con su payload y metadata
         documents = []
         for source_id in source_ids:
-            source = self.sources[source_id]
+            source = self.knowledge_sources[source_id]
             results = await self.client.query_points(
                 collection_name=source.collection,
                 query=query_vector,
-                limit=DEFAULT_TOP_K,
+                limit=self.default_top_k,
                 with_payload=True,
                 query_filter=query_filter,
             )
@@ -74,17 +43,6 @@ class QdrantRetriever:
             documents.extend(self._point_to_document(point, source=source) for point in points)
 
         return RetrievedContext(query=rewritten_query, documents=documents)
-
-
-    def list_sources(self) -> list[dict[str, str]]:
-        return [
-            {
-                "id": source.id,
-                "name": source.name,
-                "description": source.description,
-            }
-            for source in self.sources.values()
-        ]
 
 
     def _rewrite_query(self, query: str) -> str:

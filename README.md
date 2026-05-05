@@ -47,12 +47,14 @@ Flujo principal de una peticion:
 
 ## Fuentes de conocimiento
 
-Las fuentes se definen en `app/core/retrieval.py`.
+Las fuentes se definen en `app/core/qdrant_collections.py` y la busqueda se ejecuta desde `app/core/qdrant_retrieval.py`.
 
 | Source id | Coleccion Qdrant | Descripcion |
 | --------- | ---------------- | ----------- |
 | `devices` | `devices` | Dispositivos, servidores, equipos de usuario y planta. |
 | `employees` | `employees` | Empleados y datos de contacto corporativo. |
+| `manuals` | `manuals` | Manuales de software y operativas habituales. |
+| `tickets` | `tickets` | Tickets registrados en Helpdesk. |
 
 Cada búsqueda:
 
@@ -84,7 +86,7 @@ LLM_TEMPERATURE=0.2
 LLM_MAX_TOKENS=800
 
 QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=
+QDRANT_API_KEY=change-me
 ```
 
 ## Docker

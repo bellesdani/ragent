@@ -1,4 +1,4 @@
-from app.core.config import Settings
+from app.config import Settings
 from app.core.prompts import load_prompt
 from app.core.entities import AgentDefinition
 
@@ -10,7 +10,7 @@ class AgentCatalog:
             "Quipi": AgentDefinition(
                 agent_id="Quipi",
                 name="Quipi",
-                description="Agente conversacional corporativo con acceso a herramientas de busqueda sobre Qdrant.",
+                description="Agente conversacional corporativo con acceso a herramientas de búsqueda sobre Qdrant.",
                 backend_base_url=settings.chat_base_url,
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
@@ -20,7 +20,7 @@ class AgentCatalog:
             # "Base": AgentDefinition(
             #     agent_id="Base",
             #     name="Base",
-            #     description="Agente conversacional basico sin conexiones a herramientas de busqueda.",
+            #     description="Agente conversacional básico sin conexiones a herramientas de búsqueda.",
             #     backend_base_url=settings.chat_base_url,
             #     backend_api_key=settings.chat_api_key,
             #     backend_chat_model=settings.chat_model,

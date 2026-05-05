@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from app.core.config import Settings
+from app.config import Settings
 from app.core.agent_runner import AgentRunner
 from app.core.openai import OpenAICompatClient
 from app.core.agent_catalog import AgentCatalog

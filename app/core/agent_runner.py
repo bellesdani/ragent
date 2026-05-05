@@ -1,7 +1,4 @@
-from __future__ import annotations
-
-
-from app.core.config import Settings
+from app.config import Settings
 from pydantic_ai.usage import UsageLimits
 from pydantic_ai.settings import ModelSettings
 from app.core.agent_factory import AgentFactory

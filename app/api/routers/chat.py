@@ -1,15 +1,14 @@
-from __future__ import annotations
-
 import json
 import time
 import uuid
 import asyncio
+
 from collections.abc import AsyncIterator
 from app.core.chat import ChatAgentService
 from fastapi.responses import StreamingResponse
 from app.core.entities import ChatCompletionUsage
 from fastapi import APIRouter, Depends, HTTPException, Request
-from app.api.schemas import (
+from app.core.entities import (
     ChatCompletionChoice,
     ChatCompletionChoiceMessage,
     ChatCompletionRequest,
@@ -19,7 +18,7 @@ from app.api.schemas import (
 )
 
 
-router = APIRouter(prefix="/v1", tags=["chat"])
+router = APIRouter(tags=["Chat"])
 
 
 def get_chat_service(request: Request) -> ChatAgentService:
@@ -103,7 +102,7 @@ async def stream_chat_completion(model: str, content: str, usage: ChatCompletion
     yield sse_data("[DONE]")
 
 
-@router.get("/models", response_model=ModelListResponse)
+@router.get("/v1/models", response_model=ModelListResponse)
 async def list_models(chat_service: ChatAgentService = Depends(get_chat_service)) -> ModelListResponse:
     return ModelListResponse(
         data=[
@@ -117,7 +116,7 @@ async def list_models(chat_service: ChatAgentService = Depends(get_chat_service)
     )
 
 
-@router.post("/chat/completions", response_model=ChatCompletionResponse)
+@router.post("/v1/chat/completions", response_model=ChatCompletionResponse)
 async def create_chat_completion(
     request: ChatCompletionRequest, 
     chat_service: ChatAgentService = Depends(get_chat_service),
