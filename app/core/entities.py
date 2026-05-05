@@ -179,7 +179,7 @@ class Ticket(BaseModel):
     ticket_organization_id: int
     ticket_number: str
     ticket_title: str
-    ticket_created_at: int
+    ticket_created_at: datetime
     ticket_closed_at: datetime
 
     ticket_customer_firstname: Optional[str] = None
