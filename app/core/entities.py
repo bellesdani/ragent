@@ -124,7 +124,7 @@ class TicketArticleRow(BaseModel):
     ticket_group_id: int
     ticket_priority_id: int
     ticket_state_id: int
-    ticket_organization_id: int
+    ticket_organization_id: Optional[int] = None
     ticket_number: str
     ticket_title: str
     ticket_created_at: datetime
@@ -176,7 +176,7 @@ class Ticket(BaseModel):
     ticket_group_id: int
     ticket_priority_id: int
     ticket_state_id: int
-    ticket_organization_id: int
+    ticket_organization_id: Optional[int] = None
     ticket_number: str
     ticket_title: str
     ticket_created_at: datetime
