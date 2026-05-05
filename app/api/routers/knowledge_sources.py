@@ -16,7 +16,7 @@ async def get_knowledge_sources() -> List[KnowledgeSource]:
 
 
 @router.post("/knowledge_sources/tickets")
-async def create_tickets_collection() -> dict[str, str]:
+async def create_tickets_collection() -> dict[str, object]:
     settings = get_settings()
     embedding_client = EmbeddingClient(
         api_key=settings.embedding_api_key,
@@ -24,14 +24,15 @@ async def create_tickets_collection() -> dict[str, str]:
         timeout=settings.llm_timeout_seconds
     )
     qdrant_ingestor = QdrantIngestor(settings=settings, embedding_client=embedding_client)
-    result = qdrant_ingestor.create_tickets_collection()
+    collection_created = await qdrant_ingestor.create_tickets_collection()
     return {
-        "status": "ok"
+        "status": "ok",
+        "collection_created": collection_created,
     }
 
 
 @router.post("/knowledge_sources/tickets/points")
-async def create_tickets_points(ticketArticles: list[TicketArticleRow]) -> dict[str, str]:
+async def create_tickets_points(ticketArticles: list[TicketArticleRow]) -> dict[str, object]:
     settings = get_settings()
     embedding_client = EmbeddingClient(
         api_key=settings.embedding_api_key,
@@ -39,7 +40,9 @@ async def create_tickets_points(ticketArticles: list[TicketArticleRow]) -> dict[
         timeout=settings.llm_timeout_seconds
     )
     qdrant_ingestor = QdrantIngestor(settings=settings, embedding_client=embedding_client)
-    result = qdrant_ingestor.upsert_tickets_points(ticketArticles)
+    result = await qdrant_ingestor.upsert_tickets_points(ticketArticles)
     return {
-        "status": "ok"
+        "status": "ok",
+        "tickets": result["tickets"],
+        "points": result["points"],
     }

@@ -35,6 +35,7 @@ class QdrantRetriever:
             results = await self.client.query_points(
                 collection_name=source.collection,
                 query=query_vector,
+                using=source.vector_name,
                 limit=self.default_top_k,
                 with_payload=True,
                 query_filter=query_filter,

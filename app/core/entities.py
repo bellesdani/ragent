@@ -126,7 +126,7 @@ class TicketArticleRow(BaseModel):
     ticket_state_id: int
     ticket_organization_id: int
     ticket_number: str
-    ticket_title: int
+    ticket_title: str
     ticket_created_at: int
     ticket_closed_at: datetime
 
@@ -178,7 +178,7 @@ class Ticket(BaseModel):
     ticket_state_id: int
     ticket_organization_id: int
     ticket_number: str
-    ticket_title: int
+    ticket_title: str
     ticket_created_at: int
     ticket_closed_at: datetime
 

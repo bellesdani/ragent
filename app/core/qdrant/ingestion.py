@@ -21,9 +21,9 @@ class QdrantIngestor:
 
 
     async def create_tickets_collection(self):
-        if self.qdrant_client.collection_exists("tickets"):
-            return 
-        
+        if await self.qdrant_client.collection_exists("tickets"):
+            return False
+                
         await self.qdrant_client.create_collection(
             collection_name="tickets",
             vectors_config={
@@ -51,7 +51,7 @@ class QdrantIngestor:
 
         await self.qdrant_client.create_payload_index(
             collection_name="tickets",
-            field_name="metadata.ticket_name",
+            field_name="metadata.ticket_title",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True,
@@ -67,10 +67,11 @@ class QdrantIngestor:
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
+        return True
 
 
     async def upsert_tickets_points(self, ticket_articles: list[TicketArticleRow]):
-        if not self.qdrant_client.collection_exists("tickets"):
+        if not await self.qdrant_client.collection_exists("tickets"):
             await self.create_tickets_collection() 
 
         # Primero agrupamos los artículos de los tickets en tickets
@@ -141,7 +142,7 @@ class QdrantIngestor:
         payloads = []
         for ticket in tickets.values():
             content = self._build_ticket_content(ticket)
-            summarized_content = self._build_ticket_summarize_content(content)
+            summarized_content = await self._build_ticket_summarize_content(content)
             metadata = self._build_ticket_metadata(ticket)
 
             payload = {
@@ -149,6 +150,7 @@ class QdrantIngestor:
                 "summarized_content": summarized_content,
                 "metadata": metadata
             }
+            payloads.append(payload)
                 
 
         # En tercer lugar, definimos los puntos de Qdrant
@@ -159,31 +161,35 @@ class QdrantIngestor:
         points: list[models.PointStruct] = []
         for payload in payloads:
             # Calculamos el embedding
-            embedding = self.embedding_client.create_embedding(
-                input_text=payload.summarized_content,
+            embedding = await self.embedding_client.create_embedding(
+                input_text=payload["summarized_content"],
                 model=self.settings.embedding_model
             )
-
+            # Preparamos el embedding
             points.append(
                 models.PointStruct(
-                    id=payload.metadata.ticket_id,
+                    id=payload["metadata"]["ticket_id"],
                     vector={
-                        "dense_vector": embedding[0].embedding,
+                        "dense_vector": embedding,
                         "sparse_vector": models.Document(
-                            text=payload.content,
+                            text=payload["content"],
                             model="Qdrant/bm25",
                         ),
-                    }
+                    },
+                    payload=payload,
                 )
             )
 
-        # Finalmente, insertamos los puntos Qdrant en Batches
-        #  - Si el número de puntos por batch es muy grande, Qdrant puede limitarlo
-        #  - Si el número de puntos por batch es muy pequeño, puede ser muy lenta la inserción
-        await self.qdrant_client.upsert(
-            collection_name="tickets",
-            points=points,
-        )
+        # Finalmente, insertamos los puntos Qdrant 
+        if len(points) > 0:
+            await self.qdrant_client.upsert(
+                collection_name="tickets",
+                points=points,
+            )
+        return {
+            "tickets": len(tickets),
+            "points": len(points),
+        }
 
 
     def _build_ticket_content(self, ticket: Ticket) -> str:
@@ -220,7 +226,15 @@ class QdrantIngestor:
         return result.content
     
     def _build_ticket_metadata(self, ticket: Ticket):
-        return ticket
+        return ticket.model_dump(mode="json")
+    
+
+    async def _get_embedding_size(self) -> int:
+        embedding = await self.embedding_client.create_embedding(
+            input_text="ticket",
+            model=self.settings.embedding_model,
+        )
+        return len(embedding)
     
 
     def _clean_text(self, text: Optional[str]) -> str:

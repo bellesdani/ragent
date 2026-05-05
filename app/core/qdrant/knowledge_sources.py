@@ -27,6 +27,7 @@ class QdrantKnowledgeSourceCatalog():
                 name="Tickets",
                 description="Información sobre los tickets registrados en Helpdesk.",
                 collection="tickets",
+                vector_name="dense_vector",
             ),
         ]
 
@@ -41,4 +42,3 @@ class QdrantKnowledgeSourceCatalog():
             for source in self._knowledge_sources
         }
     
-
