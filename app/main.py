@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.config import get_settings
-from app.core.chat import build_chat_service
+from app.core.agent.chat import build_chat_service
 from app.api.routers import chat, health, knowledge_sources
 
 

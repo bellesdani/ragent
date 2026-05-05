@@ -1,8 +1,8 @@
 from app.config import Settings
-from app.core.agent_runner import AgentRunner
-from app.core.openai import OpenAICompatClient
-from app.core.agent_catalog import AgentCatalog
-from app.core.qdrant_retrieval import QdrantRetriever
+from app.core.embeddings import EmbeddingClient
+from app.core.agent.agent_runner import AgentRunner
+from app.core.agent.agent_catalog import AgentCatalog
+from app.core.qdrant.retrieval import QdrantRetriever
 from app.core.entities import AgentDefinition, ChatMessage, ChatResult
 
 
@@ -32,7 +32,7 @@ class ChatAgentService:
 
 def build_chat_service(settings: Settings) -> ChatAgentService:
     agent_catalog = AgentCatalog(settings)
-    embedding_client = OpenAICompatClient(
+    embedding_client = EmbeddingClient(
         base_url=settings.embedding_base_url,
         api_key=settings.embedding_api_key,
         timeout=settings.llm_timeout_seconds,

@@ -4,7 +4,7 @@ import uuid
 import asyncio
 
 from collections.abc import AsyncIterator
-from app.core.chat import ChatAgentService
+from app.core.agent.chat import ChatAgentService
 from fastapi.responses import StreamingResponse
 from app.core.entities import ChatCompletionUsage
 from fastapi import APIRouter, Depends, HTTPException, Request

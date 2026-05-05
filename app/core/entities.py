@@ -1,14 +1,15 @@
 import time
 import uuid
+from datetime import datetime
 
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel
 from dataclasses import dataclass
 from typing import Any, Literal, TYPE_CHECKING
 from pydantic import BaseModel, Field, model_validator
 
 if TYPE_CHECKING:
-    from app.core.qdrant_retrieval import QdrantRetriever
+    from app.core.qdrant.retrieval import QdrantRetriever
 
 
 class ChatMessage(BaseModel):
@@ -52,6 +53,7 @@ class AgentDefinition:
     backend_chat_model: str
     system_prompt: str
     enable_tools: bool
+    public: bool
 
 
 @dataclass
@@ -117,4 +119,77 @@ class ModelListResponse(BaseModel):
     data: list[ModelCard]
 
 
+class TicketArticleRow(BaseModel):
+    ticket_id: int
+    ticket_group_id: int
+    ticket_priority_id: int
+    ticket_state_id: int
+    ticket_organization_id: int
+    ticket_number: str
+    ticket_title: int
+    ticket_created_at: int
+    ticket_closed_at: datetime
 
+    ticket_customer_firstname: Optional[str] = None
+    ticket_customer_lastname: Optional[str] = None
+    ticket_customer_department: Optional[str] = None
+    ticket_customer_email: Optional[str] = None
+
+    ticket_creator_firstname: Optional[str] = None
+    ticket_creator_lastname: Optional[str] = None
+    ticket_creator_department: Optional[str] = None
+    ticket_creator_email: Optional[str] = None
+
+    article_id: int
+    article_from: Optional[str] = None
+    article_to: Optional[str] = None
+    article_subject: Optional[str] = None
+    article_content_type: Optional[str] = None
+    article_body: Optional[str] = None
+    article_internal: bool
+    article_created_at: datetime
+
+    article_creator_firstname: Optional[str] = None
+    article_creator_lastname: Optional[str] = None
+    article_creator_department: Optional[str] = None
+    article_creator_email: Optional[str] = None
+
+
+class TicketArticle(BaseModel):
+    article_id: int
+    article_from: Optional[str] = None
+    article_to: Optional[str] = None
+    article_subject: Optional[str] = None
+    article_content_type: Optional[str] = None
+    article_body: Optional[str] = None
+    article_internal: bool
+    article_created_at: datetime
+
+    article_creator_firstname: Optional[str] = None
+    article_creator_lastname: Optional[str] = None
+    article_creator_department: Optional[str] = None
+    article_creator_email: Optional[str] = None
+
+
+class Ticket(BaseModel):
+    ticket_id: int
+    ticket_group_id: int
+    ticket_priority_id: int
+    ticket_state_id: int
+    ticket_organization_id: int
+    ticket_number: str
+    ticket_title: int
+    ticket_created_at: int
+    ticket_closed_at: datetime
+
+    ticket_customer_firstname: Optional[str] = None
+    ticket_customer_lastname: Optional[str] = None
+    ticket_customer_department: Optional[str] = None
+    ticket_customer_email: Optional[str] = None
+
+    ticket_creator_firstname: Optional[str] = None
+    ticket_creator_lastname: Optional[str] = None
+    ticket_creator_department: Optional[str] = None
+    ticket_creator_email: Optional[str] = None
+
+    articles: list[TicketArticle]

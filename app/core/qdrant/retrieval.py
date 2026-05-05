@@ -2,14 +2,14 @@ from typing import Any
 from app.config import Settings
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
-from app.core.openai import OpenAICompatClient
-from app.core.qdrant_knowledge_sources import QdrantKnowledgeSourceCatalog
+from app.core.embeddings import EmbeddingClient
+from app.core.qdrant.knowledge_sources import QdrantKnowledgeSourceCatalog
 from app.core.entities import KnowledgeSource, RetrievalDocument, RetrievedContext
 
 
 class QdrantRetriever:
 
-    def __init__(self, settings: Settings, embedding_client: OpenAICompatClient) -> None:
+    def __init__(self, settings: Settings, embedding_client: EmbeddingClient) -> None:
         self.default_top_k = 15
         self.settings = settings
         self.embedding_client = embedding_client

@@ -5,7 +5,7 @@ from pydantic_ai.settings import ModelSettings
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from app.core.entities import AgentDefinition, AgentDeps
-from app.core.agent_tools import (
+from app.core.agent.agent_tools import (
     register_datetime_tool,
     register_calculator_tool, 
     register_ip_retrieval_tool,

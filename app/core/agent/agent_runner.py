@@ -1,8 +1,8 @@
 from app.config import Settings
 from pydantic_ai.usage import UsageLimits
 from pydantic_ai.settings import ModelSettings
-from app.core.agent_factory import AgentFactory
-from app.core.qdrant_retrieval import QdrantRetriever
+from app.core.agent.agent_factory import AgentFactory
+from app.core.qdrant.retrieval import QdrantRetriever
 from pydantic_ai.exceptions import UnexpectedModelBehavior
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 from app.core.entities import AgentDefinition, AgentDeps, ChatCompletionUsage, ChatMessage

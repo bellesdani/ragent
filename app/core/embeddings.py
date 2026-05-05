@@ -3,7 +3,7 @@ import httpx
 from typing import Any
 
 
-class OpenAICompatClient:
+class EmbeddingClient:
 
     def __init__(self, base_url: str, api_key: str, timeout: float) -> None:
         headers = {"Content-Type": "application/json"}
