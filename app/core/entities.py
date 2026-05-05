@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 
 if TYPE_CHECKING:
-    from app.core.retrieval import QdrantRetriever
+    from app.core.qdrant_retrieval import QdrantRetriever
 
 
 class ChatMessage(BaseModel):
