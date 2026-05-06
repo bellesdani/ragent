@@ -5,17 +5,21 @@ from typing import Optional
 from typing import Optional
 from app.config import Settings
 from app.core.embeddings import EmbeddingClient
-from app.core.agent.chat import build_chat_service
+from app.core.agent.service import AgentService
 from qdrant_client import AsyncQdrantClient, models
 from app.core.qdrant.knowledge_sources import QdrantKnowledgeSourceCatalog
 from app.core.entities import ChatResult, TicketArticleRow, TicketArticle, Ticket, ChatMessage
 
 
 class QdrantIngestor:
-    def __init__(self, settings: Settings, embedding_client: EmbeddingClient) -> None:
+    def __init__(self, settings: Settings, agent_service: AgentService) -> None:
         self.settings = settings
-        self.embedding_client = embedding_client
-        self.agent_service = build_chat_service(settings)
+        self.agent_service = agent_service
+        self.embedding_client = EmbeddingClient(
+            api_key=settings.embedding_api_key,
+            base_url=settings.embedding_base_url,
+            timeout=settings.llm_timeout_seconds
+        )
         self.qdrant_client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
         self.knowledge_sources = QdrantKnowledgeSourceCatalog().get_knowledge_sources_by_id()
 
@@ -210,7 +214,7 @@ class QdrantIngestor:
     
 
     async def _build_ticket_summarize_content(self, content: str):
-        result: ChatResult = await self.agent_service.complete(
+        result: ChatResult = await self.agent_service.complete_chat(
             model="Summarizer",
             messages=[
                 ChatMessage(

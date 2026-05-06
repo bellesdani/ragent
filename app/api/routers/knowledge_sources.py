@@ -1,12 +1,14 @@
 from typing import List
-from fastapi import APIRouter
-from app.config import get_settings
-from app.core.embeddings import EmbeddingClient
+from fastapi import APIRouter, Depends, Request
 from app.core.qdrant.ingestion import QdrantIngestor
 from app.core.entities import KnowledgeSource, TicketArticleRow
 from app.core.qdrant.knowledge_sources import QdrantKnowledgeSourceCatalog
 
 router = APIRouter(tags=["Knowledge Sources"])
+
+
+def get_knowledge_service(request: Request) -> QdrantIngestor:
+    return request.app.state.knowledge_service
 
 
 @router.get("/knowledge_sources")
@@ -16,15 +18,8 @@ async def get_knowledge_sources() -> List[KnowledgeSource]:
 
 
 @router.post("/knowledge_sources/tickets")
-async def create_tickets_collection() -> dict[str, object]:
-    settings = get_settings()
-    embedding_client = EmbeddingClient(
-        api_key=settings.embedding_api_key,
-        base_url=settings.embedding_base_url,
-        timeout=settings.llm_timeout_seconds
-    )
-    qdrant_ingestor = QdrantIngestor(settings=settings, embedding_client=embedding_client)
-    collection_created = await qdrant_ingestor.create_tickets_collection()
+async def create_tickets_collection(knowledge_service: QdrantIngestor = Depends(get_knowledge_service)) -> dict[str, object]:
+    collection_created = await knowledge_service.create_tickets_collection()
     return {
         "status": "ok",
         "collection_created": collection_created,
@@ -32,15 +27,11 @@ async def create_tickets_collection() -> dict[str, object]:
 
 
 @router.post("/knowledge_sources/tickets/points")
-async def create_tickets_points(ticketArticles: list[TicketArticleRow]) -> dict[str, object]:
-    settings = get_settings()
-    embedding_client = EmbeddingClient(
-        api_key=settings.embedding_api_key,
-        base_url=settings.embedding_base_url,
-        timeout=settings.llm_timeout_seconds
-    )
-    qdrant_ingestor = QdrantIngestor(settings=settings, embedding_client=embedding_client)
-    result = await qdrant_ingestor.upsert_tickets_points(ticketArticles)
+async def create_tickets_points(
+    ticketArticles: list[TicketArticleRow],
+    knowledge_service: QdrantIngestor = Depends(get_knowledge_service),
+) -> dict[str, object]:
+    result = await knowledge_service.upsert_tickets_points(ticketArticles)
     return {
         "status": "ok",
         "tickets": result["tickets"],

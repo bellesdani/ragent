@@ -4,7 +4,7 @@ import uuid
 import asyncio
 
 from collections.abc import AsyncIterator
-from app.core.agent.chat import ChatAgentService
+from app.core.agent.service import AgentService
 from fastapi.responses import StreamingResponse
 from app.core.entities import ChatCompletionUsage
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -21,8 +21,8 @@ from app.core.entities import (
 router = APIRouter(tags=["Chat"])
 
 
-def get_chat_service(request: Request) -> ChatAgentService:
-    return request.app.state.chat_service
+def get_agent_service(request: Request) -> AgentService:
+    return request.app.state.agent_service
 
 
 def sse_data(payload: dict[str, object] | str) -> str:
@@ -103,7 +103,7 @@ async def stream_chat_completion(model: str, content: str, usage: ChatCompletion
 
 
 @router.get("/v1/models", response_model=ModelListResponse)
-async def list_models(chat_service: ChatAgentService = Depends(get_chat_service)) -> ModelListResponse:
+async def list_models(agent_service: AgentService = Depends(get_agent_service)) -> ModelListResponse:
     return ModelListResponse(
         data=[
             ModelCard(
@@ -111,7 +111,7 @@ async def list_models(chat_service: ChatAgentService = Depends(get_chat_service)
                 name=agent.name,
                 description=agent.description,
             )
-            for agent in chat_service.list_agents()
+            for agent in agent_service.list_agents()
         ]
     )
 
@@ -119,10 +119,10 @@ async def list_models(chat_service: ChatAgentService = Depends(get_chat_service)
 @router.post("/v1/chat/completions", response_model=ChatCompletionResponse)
 async def create_chat_completion(
     request: ChatCompletionRequest, 
-    chat_service: ChatAgentService = Depends(get_chat_service),
+    agent_service: AgentService = Depends(get_agent_service),
 ) -> ChatCompletionResponse | StreamingResponse:
     try:
-        result = await chat_service.complete(
+        result = await agent_service.complete_chat(
             model=request.model,
             messages=request.messages,
             temperature=request.temperature,
