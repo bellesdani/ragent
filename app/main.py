@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.config import get_settings
 from app.core.agent.service import AgentService
-from app.api.routers import agent, health, knowledge_source
+from app.api.routers import agent, health, knowledge
 from app.core.knowledge_source.service import KnowledgeSourceService
 
 
@@ -20,7 +20,7 @@ def create_app() -> FastAPI:
     # Construimos los routers 
     app.include_router(agent.router)
     app.include_router(health.router)
-    app.include_router(knowledge_source.router)
+    app.include_router(knowledge.router)
     return app
 
 

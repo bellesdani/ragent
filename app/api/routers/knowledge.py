@@ -11,7 +11,7 @@ def get_knowledge_service(request: Request) -> KnowledgeSourceService:
     return request.app.state.knowledge_service
 
 
-@router.get("/knowledge_source")
+@router.get("/knowledge-source")
 async def get_knowledge_sources(
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service)
 ) -> List[KnowledgeSource]:
@@ -19,7 +19,7 @@ async def get_knowledge_sources(
     return knowledge_service.list_knowledge_sources()
 
 
-@router.post("/knowledge_source/tickets")
+@router.post("/knowledge-source/tickets")
 async def create_knowledge_source(
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service)
 ) -> dict[str, object]:
@@ -31,7 +31,7 @@ async def create_knowledge_source(
     }
 
 
-@router.post("/knowledge_source/tickets/points")
+@router.post("/knowledge-source/tickets/points")
 async def upsert_knowledge_source_data(
     ticketArticles: list[TicketArticleRow],
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service),
