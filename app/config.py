@@ -40,10 +40,7 @@ class Settings(BaseSettings):
         missing = [name for name, value in required_non_empty.items() if not str(value).strip()]
         if missing:
             formatted = ", ".join(missing)
-            raise ValueError(
-                f"Missing required settings: {formatted}. "
-                "Define them in .env or the process environment before starting the app."
-            )
+            raise ValueError(f"Faltan algunas variables de entorno obligatorias: {formatted}. Recuerda definirlos en el .env")
         return self
 
 

@@ -18,7 +18,7 @@ from app.core.entities import (
 )
 
 
-router = APIRouter(tags=["Chat"])
+router = APIRouter(tags=["Agent", "Chat", "OpenAI Compat"])
 
 
 def get_agent_service(request: Request) -> AgentService:

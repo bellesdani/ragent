@@ -1,7 +1,7 @@
 from app.core.entities import KnowledgeSource
 
 
-class QdrantKnowledgeSourceCatalog():
+class KnowledgeSourceCatalog():
     def __init__(self) -> None:
         self._knowledge_sources = [
             KnowledgeSource(
@@ -32,11 +32,11 @@ class QdrantKnowledgeSourceCatalog():
         ]
 
 
-    def get_knowledge_sources(self) -> list[KnowledgeSource]:
+    def list_knowledge_sources(self) -> list[KnowledgeSource]:
         return self._knowledge_sources
 
 
-    def get_knowledge_sources_by_id(self) -> dict[str, KnowledgeSource]:
+    def list_knowledge_sources_by_id(self) -> dict[str, KnowledgeSource]:
         return {
             source.id: source 
             for source in self._knowledge_sources

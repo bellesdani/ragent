@@ -1,13 +1,12 @@
 import re
-from html import unescape
-from typing import Optional
 
+from html import unescape
 from typing import Optional
 from app.config import Settings
 from app.core.embeddings import EmbeddingClient
 from app.core.agent.service import AgentService
 from qdrant_client import AsyncQdrantClient, models
-from app.core.qdrant.knowledge_sources import QdrantKnowledgeSourceCatalog
+from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.entities import ChatResult, TicketArticleRow, TicketArticle, Ticket, ChatMessage
 
 
@@ -21,7 +20,7 @@ class QdrantIngestor:
             timeout=settings.llm_timeout_seconds
         )
         self.qdrant_client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
-        self.knowledge_sources = QdrantKnowledgeSourceCatalog().get_knowledge_sources_by_id()
+        self.knowledge_sources = KnowledgeSourceCatalog().list_knowledge_sources_by_id()
 
 
     async def create_tickets_collection(self):

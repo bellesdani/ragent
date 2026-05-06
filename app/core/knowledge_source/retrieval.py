@@ -3,7 +3,7 @@ from app.config import Settings
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
 from app.core.embeddings import EmbeddingClient
-from app.core.qdrant.knowledge_sources import QdrantKnowledgeSourceCatalog
+from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.entities import KnowledgeSource, RetrievalDocument, RetrievedContext
 
 
@@ -14,7 +14,7 @@ class QdrantRetriever:
         self.settings = settings
         self.embedding_client = embedding_client
         self.client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
-        self.knowledge_sources = QdrantKnowledgeSourceCatalog().get_knowledge_sources_by_id()
+        self.knowledge_sources = KnowledgeSourceCatalog().list_knowledge_sources_by_id()
 
 
     async def retrieve(self, query: str, source_ids: list[str], query_filter: Filter | None = None) -> RetrievedContext:

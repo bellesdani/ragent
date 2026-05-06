@@ -1,11 +1,11 @@
 from app.config import Settings
 from pydantic_ai.usage import UsageLimits
-from pydantic_ai import UnexpectedModelBehavior
 from pydantic_ai.settings import ModelSettings
+from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
 from app.core.embeddings import EmbeddingClient
 from app.core.agent.catalog import AgentCatalog
-from app.core.qdrant.retrieval import QdrantRetriever
+from app.core.knowledge_source.retrieval import QdrantRetriever
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 from app.core.entities import AgentDefinition, AgentDeps, ChatCompletionUsage, ChatMessage, ChatResult
 
@@ -97,7 +97,7 @@ class AgentService:
                 latest_user_index = index
                 break
         if latest_user_index is None:
-            raise ValueError("user message content is required")
+            raise ValueError("Se necesita un mensaje del usuario")
 
         latest_user_prompt = messages[latest_user_index].content or ""
         history = messages[:latest_user_index]

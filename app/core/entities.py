@@ -1,15 +1,15 @@
 import time
 import uuid
-from datetime import datetime
 
-from typing import Literal, Optional
+from datetime import datetime
 from pydantic import BaseModel
 from dataclasses import dataclass
+from typing import Literal, Optional
 from typing import Any, Literal, TYPE_CHECKING
 from pydantic import BaseModel, Field, model_validator
 
 if TYPE_CHECKING:
-    from app.core.qdrant.retrieval import QdrantRetriever
+    from app.core.knowledge_source.retrieval import QdrantRetriever
 
 
 class ChatMessage(BaseModel):
@@ -78,14 +78,6 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: int | None = Field(default=None, ge=1)
     stream: bool = False
     user: str | None = None
-
-    @model_validator(mode="after")
-    def validate_messages(self) -> "ChatCompletionRequest":
-        if not self.messages:
-            raise ValueError("messages must contain at least one message")
-        if not any(message.role == "user" for message in self.messages):
-            raise ValueError("messages must include at least one user message")
-        return self
 
 
 class ChatCompletionChoiceMessage(BaseModel):

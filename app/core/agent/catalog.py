@@ -54,4 +54,4 @@ class AgentCatalog:
     def get_agent(self, agent_id: str) -> AgentDefinition:
         if agent_id in self._agents:
             return self._agents[agent_id]
-        raise ValueError(f"Unknown agent '{agent_id}'. Available agents: {', '.join(sorted(self._agents))}")
+        raise ValueError(f"Agente '{agent_id}' desconocido . Agentes disponibles: {', '.join(sorted(self._agents))}")
