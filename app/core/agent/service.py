@@ -5,7 +5,7 @@ from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
 from app.core.embeddings import EmbeddingClient
 from app.core.agent.catalog import AgentCatalog
-from app.core.knowledge_source.retrieval import QdrantRetriever
+from app.core.knowledge_source.retrieval import KnowledgeSourceRetriever
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 from app.core.entities import AgentDefinition, AgentDeps, ChatCompletionUsage, ChatMessage, ChatResult
 
@@ -25,9 +25,9 @@ class AgentService:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.agent_catalog = AgentCatalog(settings)
         self.factory = AgentFactory(settings)
-        self.retriever = QdrantRetriever(
+        self.agent_catalog = AgentCatalog(settings)
+        self.retriever = KnowledgeSourceRetriever(
             settings=settings, 
             embedding_client=EmbeddingClient(
                 base_url=settings.embedding_base_url,

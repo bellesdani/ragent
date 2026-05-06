@@ -5,11 +5,12 @@ from datetime import datetime
 from pydantic import BaseModel
 from dataclasses import dataclass
 from typing import Literal, Optional
+from pydantic import BaseModel, Field
 from typing import Any, Literal, TYPE_CHECKING
-from pydantic import BaseModel, Field, model_validator
+from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestion
 
 if TYPE_CHECKING:
-    from app.core.knowledge_source.retrieval import QdrantRetriever
+    from app.core.knowledge_source.retrieval import KnowledgeSourceRetriever
 
 
 class ChatMessage(BaseModel):
@@ -58,17 +59,19 @@ class AgentDefinition:
 
 @dataclass
 class AgentDeps:
-    retriever: "QdrantRetriever"
+    retriever: "KnowledgeSourceRetriever"
     messages: list[ChatMessage]
 
 
 @dataclass(frozen=True)
-class KnowledgeSource:
+class KnowledgeSourceDefinition:
     id: str
     name: str
     description: str
     collection: str
-    vector_name: str | None = None
+    vector_name: str | None
+    retrieval_module: KnowledgeSourceRetriever
+    ingestion_module: KnowledgeSourceIngestion
 
 
 class ChatCompletionRequest(BaseModel):

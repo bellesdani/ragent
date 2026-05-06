@@ -4,17 +4,20 @@ from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
 from app.core.embeddings import EmbeddingClient
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
-from app.core.entities import KnowledgeSource, RetrievalDocument, RetrievedContext
+from app.core.entities import KnowledgeSourceDefinition, RetrievalDocument, RetrievedContext
 
 
-class QdrantRetriever:
+class KnowledgeSourceRetriever:
 
     def __init__(self, settings: Settings, embedding_client: EmbeddingClient) -> None:
         self.default_top_k = 15
         self.settings = settings
         self.embedding_client = embedding_client
-        self.client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
-        self.knowledge_sources = KnowledgeSourceCatalog().list_knowledge_sources_by_id()
+        self.client = AsyncQdrantClient(
+            url=settings.qdrant_url, 
+            api_key=settings.qdrant_api_key or None
+        )
+        self.knowledge_source_catalog = KnowledgeSourceCatalog()
 
 
     async def retrieve(self, query: str, source_ids: list[str], query_filter: Filter | None = None) -> RetrievedContext:
@@ -31,7 +34,7 @@ class QdrantRetriever:
         #  y generamos para cada punto obtenido, un documento: un punto referenciable con su payload y metadata
         documents = []
         for source_id in source_ids:
-            source = self.knowledge_sources[source_id]
+            source = self.knowledge_source_catalog.get_knowledge_source(source_id)
             results = await self.client.query_points(
                 collection_name=source.collection,
                 query=query_vector,
@@ -50,7 +53,7 @@ class QdrantRetriever:
         return query.strip()
 
 
-    def _point_to_document(self, point: Any, source: KnowledgeSource) -> RetrievalDocument:
+    def _point_to_document(self, point: Any, source: KnowledgeSourceDefinition) -> RetrievalDocument:
         payload = dict(point.payload)
         return RetrievalDocument(
             id=f"{source.id}:{point.id}",

@@ -3,32 +3,28 @@ import re
 from html import unescape
 from typing import Optional
 from app.config import Settings
-from app.core.embeddings import EmbeddingClient
+from qdrant_client import models
 from app.core.agent.service import AgentService
-from qdrant_client import AsyncQdrantClient, models
-from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.entities import ChatResult, TicketArticleRow, TicketArticle, Ticket, ChatMessage
+from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestion
 
 
-class QdrantIngestor:
+
+class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
     def __init__(self, settings: Settings, agent_service: AgentService) -> None:
-        self.settings = settings
-        self.agent_service = agent_service
-        self.embedding_client = EmbeddingClient(
-            api_key=settings.embedding_api_key,
-            base_url=settings.embedding_base_url,
-            timeout=settings.llm_timeout_seconds
+        super().__init__(
+            settings=settings,
+            agent_service=agent_service,
+            knowledge_source_id="tickets"
         )
-        self.qdrant_client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
-        self.knowledge_sources = KnowledgeSourceCatalog().list_knowledge_sources_by_id()
 
 
-    async def create_tickets_collection(self):
-        if await self.qdrant_client.collection_exists("tickets"):
+    async def create_knowledge_source(self):
+        if await self.qdrant_client.collection_exists(self.knowledge_source.id):
             return False
                 
         await self.qdrant_client.create_collection(
-            collection_name="tickets",
+            collection_name=self.knowledge_source.collection,
             vectors_config={
                 "dense_vector": models.VectorParams(
                     size=2048,
@@ -53,7 +49,7 @@ class QdrantIngestor:
         )
 
         await self.qdrant_client.create_payload_index(
-            collection_name="tickets",
+            collection_name=self.knowledge_source.collection,
             field_name="metadata.ticket_title",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
@@ -64,7 +60,7 @@ class QdrantIngestor:
         )
 
         await self.qdrant_client.create_payload_index(
-            collection_name="tickets",
+            collection_name=self.knowledge_source.collection,
             field_name="metadata.ticket_number",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
@@ -73,11 +69,19 @@ class QdrantIngestor:
         return True
 
 
-    async def upsert_tickets_points(self, ticket_articles: list[TicketArticleRow]):
-        if not await self.qdrant_client.collection_exists("tickets"):
-            await self.create_tickets_collection() 
+    async def upsert_knowledge_source_data(self, data):
+        # Primero validamos el modelo de dato que recibimos
+        # Esperamos un conjunto de filas de ticket - artículo
+        ticket_articles = [
+            TicketArticleRow.model_validate(item)
+            for item in data
+        ]
 
-        # Primero agrupamos los artículos de los tickets en tickets
+        # En segundo lugar, si no existe la colección en Qdrant, la creamos
+        if not await self.qdrant_client.collection_exists(self.knowledge_source.collection):
+            await self.create_knowledge_source()
+
+        # En tercer lugar, agrupamos los artículos de los tickets en tickets
         #  Pasamos de tener entradas de la base de datos a datos agrupados
         tickets: dict[int, Ticket] = {}
         for ticket_article in ticket_articles:
@@ -138,7 +142,7 @@ class QdrantIngestor:
                     )
                 )
 
-        # En segundo lugar, preparamos el payload
+        # En cuarto lugar, preparamos el payload
         # Payload: 
         #  - Content: Text to generate embeddings and item to be used for semantic search  
         #  - Metadata: Text to use for search and payload metadata
@@ -156,7 +160,7 @@ class QdrantIngestor:
             payloads.append(payload)
                 
 
-        # En tercer lugar, definimos los puntos de Qdrant
+        # En quinto lugar, definimos los puntos de Qdrant
         # Point:
         #  - id: Identificador del punto
         #  - payload: Payload del punto
@@ -186,7 +190,7 @@ class QdrantIngestor:
         # Finalmente, insertamos los puntos Qdrant 
         if len(points) > 0:
             await self.qdrant_client.upsert(
-                collection_name="tickets",
+                collection_name=self.knowledge_source.collection,
                 points=points,
             )
         return {
@@ -227,6 +231,7 @@ class QdrantIngestor:
         )
 
         return result.content
+    
     
     def _build_ticket_metadata(self, ticket: Ticket):
         return ticket.model_dump(mode="json")

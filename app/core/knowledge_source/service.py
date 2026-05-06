@@ -1,8 +1,8 @@
 from app.config import Settings
 from app.core.agent.service import AgentService
-from app.core.entities import KnowledgeSource
+from app.core.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
-from app.core.knowledge_source.ingestion import QdrantIngestor
+from app.core.knowledge_source.factory import KnowledgeSourceFactory
 
 
 class KnowledgeSourceService():
@@ -10,7 +10,7 @@ class KnowledgeSourceService():
     Este servicio es el punto de acceso y gestor de fuentes de conocimiento. Utiliza:
      - Las variables cargadas (Settings)
      - El catálogo de fuentes de conocimiento (KnowledgeSourceCatalog)
-     - El servicio de ingesta de Qdrant (QdrantIngestor)
+     - El factory de servicios de ingesta de Qdrant (KnowledgeSourceFactory)
     
     Funciones públicas:
      - Listar las fuentes de conocimiento disponibles (list_knowledge_sources).
@@ -20,26 +20,25 @@ class KnowledgeSourceService():
     
     def __init__(self, settings: Settings, agent_service: AgentService) -> None:
         self.settings = settings
-        self.knowledge_source_catalog = KnowledgeSourceCatalog()
-        self.qdrant_ingestor = QdrantIngestor(
+        self.catalog = KnowledgeSourceCatalog()
+        self.factory = KnowledgeSourceFactory(
             settings=settings,
             agent_service=agent_service
         )
 
 
-    def list_knowledge_sources(self) -> list[KnowledgeSource]:
-        return self.knowledge_source_catalog.list_knowledge_sources()
+    def list_knowledge_sources(self) -> list[KnowledgeSourceDefinition]:
+        return self.catalog.list_knowledge_sources()
     
 
     async def create_knowledge_source(self, knowledge_source_id: str):
-        if knowledge_source_id == 'tickets':
-            return self.qdrant_ingestor.create_tickets_collection()
-        else:
-            raise ValueError(f"No se disponde de la fuente de conocimiento '{knowledge_source_id}' en el catálogo.")
+        definition = self.catalog.get_knowledge_source(knowledge_source_id)
+        ingestor, _ = self.factory.build(definition)
+        return await ingestor.create_knowledge_source()
 
 
     async def upsert_knowledge_source_data(self, knowledge_source_id: str, data):
-        if knowledge_source_id == 'tickets':
-            return self.qdrant_ingestor.upsert_tickets_points(data)
-        else:
-            raise ValueError(f"No se disponde de la fuente de conocimiento '{knowledge_source_id}' en el catálogo.")
+        definition = self.catalog.get_knowledge_source(knowledge_source_id)
+        ingestor, _ = self.factory.build(definition)
+        return await ingestor.upsert_knowledge_source_data(data)
+
