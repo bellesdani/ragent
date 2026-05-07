@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Any, Literal, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.core.knowledge_source.retrieval import KnowledgeSourceRetriever
+    from app.core.knowledge_source.retrieval_service import KnowledgeSourceRetrievalService
 
 
 class ChatMessage(BaseModel):
@@ -58,7 +58,7 @@ class AgentDefinition:
 
 @dataclass
 class AgentDeps:
-    retriever: "KnowledgeSourceRetriever"
+    retriever: "KnowledgeSourceRetrievalService"
     messages: list[ChatMessage]
 
 
@@ -70,6 +70,7 @@ class KnowledgeSourceDefinition:
     collection_name: str
     dense_vector_name: str | None
     sparse_vector_name: str | None
+    retrieval_type: Literal["semantic", "hybrid"]
 
 
 class ChatCompletionRequest(BaseModel):
