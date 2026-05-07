@@ -36,9 +36,9 @@ class KnowledgeSourceRetriever:
         for source_id in source_ids:
             source = self.knowledge_source_catalog.get_knowledge_source(source_id)
             results = await self.client.query_points(
-                collection_name=source.collection,
+                collection_name=source.collection_name,
                 query=query_vector,
-                using=source.vector_name,
+                using=source.dense_vector_name,
                 limit=self.default_top_k,
                 with_payload=True,
                 query_filter=query_filter,

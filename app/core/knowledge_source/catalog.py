@@ -1,5 +1,4 @@
 from app.core.entities import KnowledgeSourceDefinition
-from app.core.knowledge_source.ingestion_tickets import TicketsKnowledgeSourceIngestion
 
 
 class KnowledgeSourceCatalog():
@@ -9,37 +8,33 @@ class KnowledgeSourceCatalog():
                 id="devices",
                 name="Devices",
                 description="Información sobre dispositivos de la empresa, como servidores y equipos de usuario y planta.",
-                collection="devices",
-                vector_name=None,
-                ingestion_module=None,
-                retrieval_module=None,
+                collection_name="devices",
+                dense_vector_name=None,
+                sparse_vector_name=None,
             ),
             "employees": KnowledgeSourceDefinition(
                 id="employees",
                 name="Employees",
                 description="Información sobre empleados y su contacto corporativo: correo, teléfono y extensión.",
-                collection="employees",
-                vector_name=None,
-                ingestion_module=None,
-                retrieval_module=None,
+                collection_name="employees",
+                dense_vector_name=None,
+                sparse_vector_name=None,
             ),
             "manuals": KnowledgeSourceDefinition(
                 id="manuals",
                 name="Manuals",
                 description="Información sobre manuales de software y operativas habituales dentro de la empresa.",
-                collection="manuals",
-                vector_name=None,
-                ingestion_module=None,
-                retrieval_module=None,
+                collection_name="manuals",
+                dense_vector_name=None,
+                sparse_vector_name=None,
             ),
             "tickets": KnowledgeSourceDefinition(
                 id="tickets",
                 name="Tickets",
                 description="Información sobre los tickets registrados en Helpdesk.",
-                collection="tickets",
-                vector_name="dense_vector",
-                ingestion_module=TicketsKnowledgeSourceIngestion(),
-                retrieval_module=None,
+                collection_name="tickets",
+                dense_vector_name="dense_vector",
+                sparse_vector_name="sparse_vector",
             ),
         }
 

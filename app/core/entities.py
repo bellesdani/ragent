@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from typing import Any, Literal, TYPE_CHECKING
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestion
 
 if TYPE_CHECKING:
     from app.core.knowledge_source.retrieval import KnowledgeSourceRetriever
@@ -68,10 +67,9 @@ class KnowledgeSourceDefinition:
     id: str
     name: str
     description: str
-    collection: str
-    vector_name: str | None
-    retrieval_module: KnowledgeSourceRetriever
-    ingestion_module: KnowledgeSourceIngestion
+    collection_name: str
+    dense_vector_name: str | None
+    sparse_vector_name: str | None
 
 
 class ChatCompletionRequest(BaseModel):

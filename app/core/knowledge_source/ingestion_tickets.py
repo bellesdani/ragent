@@ -5,28 +5,33 @@ from typing import Optional
 from app.config import Settings
 from qdrant_client import models
 from app.core.agent.service import AgentService
-from app.core.entities import ChatResult, TicketArticleRow, TicketArticle, Ticket, ChatMessage
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestion
+from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
+from app.core.entities import ChatResult, KnowledgeSourceDefinition, TicketArticleRow, TicketArticle, Ticket, ChatMessage
 
 
 
-class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
-    def __init__(self, settings: Settings, agent_service: AgentService) -> None:
+class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
+    def __init__(self, settings: Settings, agent_service: AgentService, definition: KnowledgeSourceDefinition) -> None:
         super().__init__(
             settings=settings,
+            definition=definition,
             agent_service=agent_service,
-            knowledge_source_id="tickets"
         )
 
 
     async def create_knowledge_source(self):
-        if await self.qdrant_client.collection_exists(self.knowledge_source.id):
+        if await self.qdrant_client.collection_exists(self.knowledge_source.collection_name):
             return False
-                
+
+        if self.knowledge_source.dense_vector_name is None:
+            raise ValueError(f"La fuente de conocimiento '{self.knowledge_source.id}' no tiene vector denso configurado.")
+        if self.knowledge_source.sparse_vector_name is None:
+            raise ValueError(f"La fuente de conocimiento '{self.knowledge_source.id}' no tiene vector disperso configurado.")
+                 
         await self.qdrant_client.create_collection(
-            collection_name=self.knowledge_source.collection,
+            collection_name=self.knowledge_source.collection_name,
             vectors_config={
-                "dense_vector": models.VectorParams(
+                self.knowledge_source.dense_vector_name: models.VectorParams(
                     size=2048,
                     distance=models.Distance.COSINE,
                     on_disk=False,
@@ -39,7 +44,7 @@ class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
                 )
             },
             sparse_vectors_config={
-                "sparse_vector": models.SparseVectorParams(
+                self.knowledge_source.sparse_vector_name: models.SparseVectorParams(
                     index=models.SparseIndexParams(
                         on_disk=True,
                     ),
@@ -49,7 +54,7 @@ class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
         )
 
         await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection,
+            collection_name=self.knowledge_source.collection_name,
             field_name="metadata.ticket_title",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
@@ -60,7 +65,7 @@ class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
         )
 
         await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection,
+            collection_name=self.knowledge_source.collection_name,
             field_name="metadata.ticket_number",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
@@ -78,7 +83,7 @@ class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
         ]
 
         # En segundo lugar, si no existe la colección en Qdrant, la creamos
-        if not await self.qdrant_client.collection_exists(self.knowledge_source.collection):
+        if not await self.qdrant_client.collection_exists(self.knowledge_source.collection_name):
             await self.create_knowledge_source()
 
         # En tercer lugar, agrupamos los artículos de los tickets en tickets
@@ -177,8 +182,8 @@ class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
                 models.PointStruct(
                     id=payload["metadata"]["ticket_id"],
                     vector={
-                        "dense_vector": embedding,
-                        "sparse_vector": models.Document(
+                        self.knowledge_source.dense_vector_name: embedding,
+                        self.knowledge_source.sparse_vector_name: models.Document(
                             text=payload["content"],
                             model="Qdrant/bm25",
                         ),
@@ -190,7 +195,7 @@ class TicketsKnowledgeSourceIngestion(KnowledgeSourceIngestion):
         # Finalmente, insertamos los puntos Qdrant 
         if len(points) > 0:
             await self.qdrant_client.upsert(
-                collection_name=self.knowledge_source.collection,
+                collection_name=self.knowledge_source.collection_name,
                 points=points,
             )
         return {
