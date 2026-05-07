@@ -2,7 +2,7 @@ from typing import Any
 from app.config import Settings
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
-from app.core.embeddings import EmbeddingClient
+from app.core.embeddings import EmbeddingService
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.entities import KnowledgeSourceDefinition, RetrievalDocument, RetrievedContext
 
@@ -19,7 +19,7 @@ class KnowledgeSourceRetriever:
      - Recuperar documentos relevantes para una consulta (retrieve).
     """
 
-    def __init__(self, settings: Settings, embedding_client: EmbeddingClient) -> None:
+    def __init__(self, settings: Settings, embedding_client: EmbeddingService) -> None:
         self.default_top_k = 15
         self.settings = settings
         self.embedding_client = embedding_client

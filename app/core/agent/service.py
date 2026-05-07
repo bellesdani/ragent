@@ -1,11 +1,11 @@
 from app.config import Settings
 from pydantic_ai.usage import UsageLimits
+from app.core.prompts import PromptService
 from pydantic_ai.settings import ModelSettings
+from app.core.agent.catalog import AgentCatalog
 from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
-from app.core.embeddings import EmbeddingClient
-from app.core.agent.catalog import AgentCatalog
-from app.core.prompts import PromptService
+from app.core.embeddings import EmbeddingService
 from app.core.knowledge_source.retrieval import KnowledgeSourceRetriever
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 from app.core.entities import AgentDefinition, AgentDeps, ChatCompletionUsage, ChatMessage, ChatResult
@@ -36,10 +36,8 @@ class AgentService:
         )
         self.retriever = KnowledgeSourceRetriever(
             settings=settings, 
-            embedding_client=EmbeddingClient(
-                base_url=settings.embedding_base_url,
-                api_key=settings.embedding_api_key,
-                timeout=settings.llm_timeout_seconds,
+            embedding_client=EmbeddingService(
+                settings=settings,
             )
         )
 

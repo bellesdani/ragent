@@ -2,15 +2,23 @@ import httpx
 
 from typing import Any
 
+from app.config import Settings
 
-class EmbeddingClient:
 
-    def __init__(self, base_url: str, api_key: str, timeout: float) -> None:
+class EmbeddingService:
+    """
+    Este servicio centraliza la generación de embeddings.
+     - Las variables cargadas (Settings)
+
+    Funciones públicas:
+     - Generar el embedding de un texto (create_embedding).
+    """
+    def __init__(self, settings: Settings) -> None:
         headers = {"Content-Type": "application/json"}
-        headers["Authorization"] = f"Bearer {api_key}"
+        headers["Authorization"] = f"Bearer {settings.embedding_api_key}"
         self.client = httpx.AsyncClient(
-            base_url=base_url.rstrip("/") + "/",
-            timeout=timeout,
+            base_url=settings.embedding_base_url.rstrip("/") + "/",
+            timeout=settings.llm_timeout_seconds,
             headers=headers,
         )
 
