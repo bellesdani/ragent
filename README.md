@@ -15,7 +15,7 @@ El módulo de agentes se reparte en estas piezas principales:
 - `AgentService`: coordina el historial, la ejecución y la respuesta compatible con OpenAI.
 - `app/core/agent/tools.py`: contiene las herramientas disponibles para los agentes habilitados.
 
-Los prompts viven en `app/core/prompts`. Pueden existir agentes internos para tareas auxiliares aunque no se publiquen en `/v1/models`.
+Los prompts viven en `app/core/prompts` y se cargan desde `PromptService`. Pueden existir agentes internos para tareas auxiliares aunque no se publiquen en `/v1/models`.
 
 ## Arquitectura
 

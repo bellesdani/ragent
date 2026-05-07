@@ -5,6 +5,7 @@ from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
 from app.core.embeddings import EmbeddingClient
 from app.core.agent.catalog import AgentCatalog
+from app.core.prompts import PromptService
 from app.core.knowledge_source.retrieval import KnowledgeSourceRetriever
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 from app.core.entities import AgentDefinition, AgentDeps, ChatCompletionUsage, ChatMessage, ChatResult
@@ -15,6 +16,7 @@ class AgentService:
     Este servicio es el punto de acceso y gestor de agentes. Utiliza:
      - Las variables cargadas (Settings)
      - El catálogo de agentes (AgentCatalog)
+     - El servicio de prompts (PromptService)
      - La factoría de agentes para construirlos (AgentFactory)
      - El servicio de búsqueda de Qdrant (QdrantRetriever)
     
@@ -25,8 +27,13 @@ class AgentService:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.factory = AgentFactory(settings)
-        self.agent_catalog = AgentCatalog(settings)
+        self.factory = AgentFactory(
+            settings=settings,
+        )
+        self.agent_catalog = AgentCatalog(
+            settings=settings,
+            prompt_service=PromptService()
+        )
         self.retriever = KnowledgeSourceRetriever(
             settings=settings, 
             embedding_client=EmbeddingClient(

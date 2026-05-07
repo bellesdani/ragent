@@ -1,5 +1,5 @@
 from app.config import Settings
-from app.core.prompts import load_prompt
+from app.core.prompts import PromptService
 from app.core.entities import AgentDefinition
 
 
@@ -7,14 +7,14 @@ class AgentCatalog:
     """
     Este catálogo centraliza las definiciones de agentes disponibles. Utiliza:
      - Las variables cargadas (Settings)
-     - Los prompts configurados para cada agente
+     - El servicio de prompts (PromptService)
 
     Funciones públicas:
      - Listar los agentes publicados (list_agents).
      - Obtener un agente por identificador (get_agent).
     """
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, prompt_service: PromptService) -> None:
         self._agents = {
             "Quipi": AgentDefinition(
                 agent_id="Quipi",
@@ -23,7 +23,7 @@ class AgentCatalog:
                 backend_base_url=settings.chat_base_url,
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
-                system_prompt=load_prompt("quipi_system.md"),
+                system_prompt=prompt_service.load_prompt("quipi_system.md"),
                 enable_tools=True,
                 public=True,
             ),
@@ -34,7 +34,7 @@ class AgentCatalog:
                 backend_base_url=settings.chat_base_url,
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
-                system_prompt=load_prompt("base_system.md"),
+                system_prompt=prompt_service.load_prompt("base_system.md"),
                 enable_tools=False,
                 public=False,
             ),
@@ -45,7 +45,7 @@ class AgentCatalog:
                 backend_base_url=settings.chat_base_url,
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
-                system_prompt=load_prompt("summarizer_system.md"),
+                system_prompt=prompt_service.load_prompt("summarizer_system.md"),
                 enable_tools=False,
                 public=False,
             ),
