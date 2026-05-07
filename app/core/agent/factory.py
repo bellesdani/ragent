@@ -19,6 +19,13 @@ from app.core.agent.tools import (
 
 
 class AgentFactory:
+    """
+    Esta factoría construye agentes a partir de una definición. Utiliza:
+     - Las variables cargadas (Settings) para definir los proveedorees y modelos.
+
+    Funciones públicas:
+     - Construir un agente ejecutable (build).
+    """
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings

@@ -4,6 +4,15 @@ from app.core.entities import AgentDefinition
 
 
 class AgentCatalog:
+    """
+    Este catálogo centraliza las definiciones de agentes disponibles. Utiliza:
+     - Las variables cargadas (Settings)
+     - Los prompts configurados para cada agente
+
+    Funciones públicas:
+     - Listar los agentes publicados (list_agents).
+     - Obtener un agente por identificador (get_agent).
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._agents = {

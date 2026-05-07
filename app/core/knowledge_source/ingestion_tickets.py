@@ -11,6 +11,16 @@ from app.core.entities import ChatResult, KnowledgeSourceDefinition, TicketArtic
 
 
 class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
+    """
+    Este ingestor prepara los tickets para su consulta como fuente de conocimiento. Utiliza:
+     - La configuración base de ingesta (KnowledgeSourceIngestor)
+     - El agente de resumen de tickets
+
+    Funciones públicas:
+     - Crear la fuente de conocimiento de tickets (create_knowledge_source).
+     - Añadir datos de tickets a la fuente de conocimiento (upsert_knowledge_source_data).
+    """
+
     def __init__(self, settings: Settings, agent_service: AgentService, definition: KnowledgeSourceDefinition) -> None:
         super().__init__(
             settings=settings,

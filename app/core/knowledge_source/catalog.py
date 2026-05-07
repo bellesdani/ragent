@@ -2,6 +2,15 @@ from app.core.entities import KnowledgeSourceDefinition
 
 
 class KnowledgeSourceCatalog():
+    """
+    Este catálogo centraliza las fuentes de conocimiento disponibles. Utiliza:
+     - Las definiciones de fuentes de conocimiento (KnowledgeSourceDefinition)
+
+    Funciones públicas:
+     - Listar las fuentes de conocimiento disponibles (list_knowledge_sources).
+     - Obtener una fuente de conocimiento por identificador (get_knowledge_source).
+    """
+
     def __init__(self) -> None:
         self._knowledge_sources = {
             "devices": KnowledgeSourceDefinition(

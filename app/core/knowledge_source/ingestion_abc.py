@@ -7,6 +7,17 @@ from app.core.entities import KnowledgeSourceDefinition
 
 
 class KnowledgeSourceIngestor(ABC):
+    """
+    Esta clase define la interfaz base para ingestar fuentes de conocimiento. Utiliza:
+     - Las variables cargadas (Settings)
+     - El servicio de agentes (AgentService), ya que algún proceso de ingesta puede requerir la ayuda de agentes.
+     - La definición de la fuente de conocimiento (KnowledgeSourceDefinition)
+
+    Funciones públicas:
+     - Crear la fuente de conocimiento (create_knowledge_source).
+     - Añadir datos a la fuente de conocimiento (upsert_knowledge_source_data).
+    """
+
     def __init__(self, settings: Settings, agent_service: AgentService, definition: KnowledgeSourceDefinition) -> None:
         self.settings = settings
         self.agent_service = agent_service

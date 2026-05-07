@@ -8,12 +8,22 @@ from app.core.entities import KnowledgeSourceDefinition, RetrievalDocument, Retr
 
 
 class KnowledgeSourceRetriever:
+    """
+    Este servicio busca contexto en las fuentes de conocimiento. Utiliza:
+     - Las variables cargadas (Settings)
+     - El cliente de embeddings (EmbeddingClient)
+     - El cliente de Qdrant (AsyncQdrantClient)
+     - El catálogo de fuentes de conocimiento (KnowledgeSourceCatalog)
+
+    Funciones públicas:
+     - Recuperar documentos relevantes para una consulta (retrieve).
+    """
 
     def __init__(self, settings: Settings, embedding_client: EmbeddingClient) -> None:
         self.default_top_k = 15
         self.settings = settings
         self.embedding_client = embedding_client
-        self.client = AsyncQdrantClient(
+        self.qdrant_client = AsyncQdrantClient(
             url=settings.qdrant_url, 
             api_key=settings.qdrant_api_key or None
         )
@@ -35,7 +45,7 @@ class KnowledgeSourceRetriever:
         documents = []
         for source_id in source_ids:
             source = self.knowledge_source_catalog.get_knowledge_source(source_id)
-            results = await self.client.query_points(
+            results = await self.qdrant_client.query_points(
                 collection_name=source.collection_name,
                 query=query_vector,
                 using=source.dense_vector_name,

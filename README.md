@@ -2,92 +2,55 @@
 
 Backend en Python que publica agentes conversacionales con una API compatible con OpenAI para integrarse con Open WebUI u otros clientes que usen `/v1/models` y `/v1/chat/completions`.
 
-El servicio no expone directamente el modelo de chat configurado. El cliente selecciona un agente publico (`Quipi`, `Base`, etc.) y RAGent se encarga de ejecutar ese agente contra el proveedor real de IA, con sus prompts, tools y configuracion.
+El servicio no expone directamente el modelo de chat configurado. El cliente selecciona un agente publicado y RAGent se encarga de ejecutarlo contra el proveedor real de IA, con su prompt, herramientas y fuentes de conocimiento cuando corresponda.
 
-## Agentes publicados
+## Agentes
 
-Los agentes disponibles se definen en `app/core/agent_catalog.py`.
+Los agentes se definen en `app/core/agent/catalog.py`. Cada definición indica qué prompt usa, si se publica en la API y si puede registrar herramientas.
 
-### Quipi
+El módulo de agentes se reparte en estas piezas principales:
 
-Agente corporativo principal.
+- `AgentCatalog`: lista y resuelve las definiciones de agentes.
+- `AgentFactory`: construye agentes ejecutables.
+- `AgentService`: coordina el historial, la ejecución y la respuesta compatible con OpenAI.
+- `app/core/agent/tools.py`: contiene las herramientas disponibles para los agentes habilitados.
 
-- Usa el prompt `app/core/prompts/quipi_system.md`.
-- Ejecuta el modelo configurado en `CHAT_MODEL`.
-- Tiene acceso a tools.
-- Puede consultar fuentes de Qdrant sobre empleados y dispositivos.
-- Puede usar una calculadora para expresiones aritmeticas simples.
-
-Tools registradas:
-
-- `search_employees(query)`: busca informacion de empleados, contacto, departamento, telefono, extension y correo.
-- `search_devices(query)`: busca informacion de equipos, servidores, hosts, hardware, red, sistema operativo, serie, proveedor y modelo.
-- `calculator(expression)`: evalua expresiones aritmeticas simples.
-
-### Base
-
-Agente minimo para validar conectividad, historial y generacion de respuestas.
-
-- Usa el prompt `app/core/prompts/base_system.md`.
-- Ejecuta el mismo backend de chat que Quipi.
-- No registra tools.
-- No consulta Qdrant.
+Los prompts viven en `app/core/prompts`. Pueden existir agentes internos para tareas auxiliares aunque no se publiquen en `/v1/models`.
 
 ## Arquitectura
 
-Flujo principal de una peticion:
+Flujo principal de una petición de chat:
 
 1. El cliente llama a `/v1/chat/completions` con `model` igual al id del agente.
-2. `ChatAgentService` obtiene la definicion del agente desde `AgentCatalog`.
-3. `AgentRunner` separa el ultimo mensaje de usuario y reconstruye el historial para PydanticAI.
-4. `AgentFactory` crea un agente con `OpenAIChatModel`, el prompt del agente y sus tools si aplica.
-5. El agente decide si responde directamente o si llama a tools.
-6. Las tools de busqueda generan embeddings, consultan Qdrant y devuelven contexto al modelo.
-7. La API devuelve una respuesta `chat.completion` compatible con OpenAI.
+2. `AgentService` obtiene la definición desde `AgentCatalog`.
+3. `AgentFactory` construye el agente con su prompt y configuración.
+4. El agente responde directamente o solicita contexto mediante herramientas.
+5. Las herramientas consultan las fuentes de conocimiento cuando aplica.
+6. La API devuelve una respuesta `chat.completion` compatible con OpenAI.
 
 ## Fuentes de conocimiento
 
-Las fuentes se definen en `app/core/qdrant_collections.py` y la busqueda se ejecuta desde `app/core/qdrant_retrieval.py`.
+Las fuentes se definen en `app/core/knowledge_source/catalog.py`. El catálogo es la referencia para saber qué fuentes existen y cómo se identifican.
 
-| Source id | Coleccion Qdrant | Descripcion |
-| --------- | ---------------- | ----------- |
-| `devices` | `devices` | Dispositivos, servidores, equipos de usuario y planta. |
-| `employees` | `employees` | Empleados y datos de contacto corporativo. |
-| `manuals` | `manuals` | Manuales de software y operativas habituales. |
-| `tickets` | `tickets` | Tickets registrados en Helpdesk. |
+La parte de fuentes de conocimiento se organiza así:
 
-Cada búsqueda:
+- `KnowledgeSourceCatalog`: lista y resuelve las fuentes disponibles.
+- `KnowledgeSourceRetriever`: recupera contexto relevante para las herramientas de los agentes.
+- `KnowledgeSourceService`: coordina las operaciones públicas sobre fuentes de conocimiento.
+- `KnowledgeSourceIngestorFactory`: selecciona el servicio de ingesta adecuado cuando una fuente lo necesita.
 
-1. Reescribe de forma basica la consulta con los ultimos turnos de conversacion.
-2. Genera el embedding con `EMBEDDING_BASE_URL` y `EMBEDDING_MODEL`.
-3. Consulta Qdrant con `query_points`.
-4. Devuelve hasta `DEFAULT_TOP_K = 15` resultados por fuente.
+La API incluye rutas para listar fuentes, crear una fuente y añadir datos. La documentación interactiva de FastAPI muestra los endpoints y esquemas actuales.
 
-Los puntos de Qdrant deben contener al menos:
+## Configuración
 
-- `payload.content`: texto indexado.
-- `payload.metadata`: metadatos devueltos al agente.
+Crea un `.env` a partir de `.env.example` y ajusta los valores para tu entorno.
 
-## Configuracion
+- `CHAT_*`: proveedor real del modelo de chat.
+- `EMBEDDING_*`: proveedor del modelo de embeddings.
+- `QDRANT_*`: conexión con Qdrant.
+- `LLM_*`: parámetros generales de ejecución.
 
-Crea un `.env` a partir de `.env.example` y ajusta los valores. `CHAT_BASE_URL` debe apuntar al proveedor real del modelo de chat, por ejemplo vLLM u otro servidor OpenAI-compatible; no debe apuntar al propio endpoint de RAGent.
-
-```env
-CHAT_API_KEY=change-me
-CHAT_BASE_URL=http://localhost:8001/v1
-CHAT_MODEL=openai/gpt-oss-20b
-
-EMBEDDING_API_KEY=change-me
-EMBEDDING_BASE_URL=https://api.openai.com/v1
-EMBEDDING_MODEL=text-embedding-3-large
-
-LLM_TIMEOUT_SECONDS=60
-LLM_TEMPERATURE=0.2
-LLM_MAX_TOKENS=800
-
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=change-me
-```
+`CHAT_BASE_URL` debe apuntar al proveedor real del modelo de chat, por ejemplo vLLM u otro servidor OpenAI-compatible; no debe apuntar al propio endpoint de RAGent.
 
 ## Docker
 
@@ -111,7 +74,8 @@ docker compose -f docker-compose.local.yml down
 
 Puertos por defecto:
 
-- RAGent: `http://localhost:8000`
+- RAGent en `docker-compose.local.yml`: `http://localhost:8000`
+- RAGent en `docker-compose.yml`: `http://localhost:8001`
 - Open WebUI local: `http://localhost:8080`
 
 Cuando Open WebUI se ejecuta desde `docker-compose.local.yml`, puede configurarse contra RAGent usando la URL interna `http://ragent:8000/v1`. Desde fuera de Docker, la URL equivalente es `http://localhost:8000/v1`.
