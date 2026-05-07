@@ -27,7 +27,7 @@ class ChatCompletionUsage(BaseModel):
 class RetrievalDocument(BaseModel):
     id: str
     score: float
-    text: str
+    content: str
     metadata: dict[str, Any]
 
 

@@ -44,7 +44,7 @@ class KnowledgeSourceCatalog():
                 id="tickets",
                 name="Tickets",
                 description="Información sobre los tickets registrados en Helpdesk.",
-                retrieval_type="semantic",
+                retrieval_type="hybrid",
                 collection_name="tickets",
                 dense_vector_name="dense_vector",
                 sparse_vector_name="sparse_vector",

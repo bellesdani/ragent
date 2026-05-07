@@ -40,6 +40,6 @@ class KnowledgeSourceRetrieval(ABC):
         return RetrievalDocument(
             id=f"{source.id}:{point.id}",
             score=float(point.score),
-            text=payload["content"],
+            content=payload["content"],
             metadata=payload["metadata"],
         )

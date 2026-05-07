@@ -126,7 +126,7 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
                 lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
-                # lines.append(f"[{index}] Contenido: {document.text}")
+                # lines.append(f"[{index}] Contenido: {document.content}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -178,7 +178,7 @@ def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
                 lines.append(f"")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
-                # lines.append(f"[{index}] Contenido: {document.text}")
+                # lines.append(f"[{index}] Contenido: {document.content}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -230,7 +230,7 @@ def register_mac_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
                 lines.append(f"")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
-                # lines.append(f"[{index}] Contenido: {document.text}")
+                # lines.append(f"[{index}] Contenido: {document.content}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -285,7 +285,7 @@ def register_serial_number_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
                 lines.append(f"")
                 lines.append(f"[{index}] Fuente: {document.id}")
                 lines.append(f"[{index}] Contenido: {document.metadata}")
-                # lines.append(f"[{index}] Contenido: {document.text}")
+                # lines.append(f"[{index}] Contenido: {document.content}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -320,7 +320,7 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             for index, document in enumerate(retrieval.documents, start=1):
                 lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
-                lines.append(f"[{index}] Contenido: {document.text}")
+                lines.append(f"[{index}] Contenido: {document.content}")
                 lines.append(f"[{index}] Metadata: {document.metadata}")
             return "\n".join(lines)
         else:
@@ -351,9 +351,13 @@ def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         if retrieval.documents:
             lines = [f"Consulta usada: {retrieval.query}"]
             for index, document in enumerate(retrieval.documents, start=1):
+                # Para el caso de los tickets, vamos a eliminar el histórico de artículos porque añade mucha basura
+                if "articles" in document.metadata:
+                    document.metadata["articles"] = []
+                # Para cada ticket elegido, devolvemos identificador, contenido y metadatos
                 lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
-                lines.append(f"[{index}] Contenido: {document.text}")
+                lines.append(f"[{index}] Contenido: {document.content}")
                 lines.append(f"[{index}] Metadata: {document.metadata}")
             return "\n".join(lines)
         else:
