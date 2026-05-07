@@ -1,10 +1,10 @@
-from abc import ABC, abstractmethod
 from typing import Any
 from app.config import Settings
+from abc import ABC, abstractmethod
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
 from app.core.embeddings import EmbeddingService
-from app.core.entities import KnowledgeSourceDefinition, RetrievalDocument
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievalDocument
 
 
 class KnowledgeSourceRetrieval(ABC):

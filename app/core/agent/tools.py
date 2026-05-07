@@ -3,7 +3,7 @@ import re
 from typing import Optional
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from app.core.entities import AgentDeps
+from app.core.agent.entities import AgentDeps
 from pydantic_ai import Agent, ModelRetry, RunContext
 from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchText
 

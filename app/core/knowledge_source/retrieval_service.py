@@ -2,11 +2,11 @@ from app.config import Settings
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
 from app.core.embeddings import EmbeddingService
+from app.core.knowledge_source.entities import RetrievedContext
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.knowledge_source.retrieval_abc import KnowledgeSourceRetrieval
 from app.core.knowledge_source.retrieval_hybrid import HybridKnowledgeSourceRetrieval
 from app.core.knowledge_source.retrieval_semantic import SemanticKnowledgeSourceRetrieval
-from app.core.entities import RetrievedContext
 
 
 class KnowledgeSourceRetrievalService:

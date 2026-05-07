@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from qdrant_client import AsyncQdrantClient
 from app.core.embeddings import EmbeddingService
 from app.core.agent.service import AgentService
-from app.core.entities import KnowledgeSourceDefinition
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 
 
 class KnowledgeSourceIngestor(ABC):
@@ -39,4 +39,3 @@ class KnowledgeSourceIngestor(ABC):
     @abstractmethod
     async def upsert_knowledge_source_data(self, data):
         raise NotImplementedError
-

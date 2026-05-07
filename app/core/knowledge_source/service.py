@@ -1,7 +1,7 @@
 from app.config import Settings
 from app.core.agent.service import AgentService
-from app.core.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.factory import KnowledgeSourceIngestorFactory
 
 

@@ -6,9 +6,9 @@ import asyncio
 from collections.abc import AsyncIterator
 from app.core.agent.service import AgentService
 from fastapi.responses import StreamingResponse
-from app.core.entities import ChatCompletionUsage
+from app.core.chat.entities import ChatCompletionUsage
 from fastapi import APIRouter, Depends, HTTPException, Request
-from app.core.entities import (
+from app.api.schemas.agent import (
     ChatCompletionChoice,
     ChatCompletionChoiceMessage,
     ChatCompletionRequest,

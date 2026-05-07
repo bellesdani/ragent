@@ -6,9 +6,10 @@ from app.core.agent.catalog import AgentCatalog
 from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
 from app.core.embeddings import EmbeddingService
+from app.core.agent.entities import AgentDefinition, AgentDeps
+from app.core.chat.entities import ChatCompletionUsage, ChatMessage, ChatResult
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
 from app.core.knowledge_source.retrieval_service import KnowledgeSourceRetrievalService
-from app.core.entities import AgentDefinition, AgentDeps, ChatCompletionUsage, ChatMessage, ChatResult
 
 
 class AgentService:

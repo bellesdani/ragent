@@ -1,4 +1,4 @@
-from app.core.entities import KnowledgeSourceDefinition
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 
 
 class KnowledgeSourceCatalog():

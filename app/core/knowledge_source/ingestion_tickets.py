@@ -5,8 +5,9 @@ from typing import Optional
 from app.config import Settings
 from qdrant_client import models
 from app.core.agent.service import AgentService
+from app.core.chat.entities import ChatResult, ChatMessage
 from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
-from app.core.entities import ChatResult, KnowledgeSourceDefinition, TicketArticleRow, TicketArticle, Ticket, ChatMessage
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition, TicketArticleRow, TicketArticle, Ticket
 
 
 

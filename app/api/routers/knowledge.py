@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, Request
-from app.core.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.service import KnowledgeSourceService
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 
 
 router = APIRouter(tags=["Knowledge Sources"])

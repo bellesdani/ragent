@@ -1,6 +1,6 @@
 from app.config import Settings
 from app.core.agent.service import AgentService
-from app.core.entities import KnowledgeSourceDefinition
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_tickets import TicketsKnowledgeSourceIngestor
 

@@ -1,6 +1,6 @@
 from app.config import Settings
 from app.core.prompts import PromptService
-from app.core.entities import AgentDefinition
+from app.core.agent.entities import AgentDefinition
 
 
 class AgentCatalog:
