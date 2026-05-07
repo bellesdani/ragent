@@ -8,7 +8,13 @@ class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
     Esta clase recupera documentos mediante busqueda semántica.
     """
 
-    async def retrieve(self, query: str, source: KnowledgeSourceDefinition, query_filter: Filter | None = None) -> list[RetrievalDocument]:
+    async def retrieve(
+            self, 
+            query: str, 
+            limit: int,
+            source: KnowledgeSourceDefinition, 
+            query_filter: Filter | None = None
+    ) -> list[RetrievalDocument]:
         # Creamos el embedding
         query_vector = await self.embedding_client.create_embedding(
             input_text=query,
@@ -20,7 +26,7 @@ class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
             collection_name=source.collection_name,
             query=query_vector,
             using=source.dense_vector_name,
-            limit=self.default_top_k,
+            limit=limit,
             with_payload=True,
             query_filter=query_filter,
         )

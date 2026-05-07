@@ -18,15 +18,20 @@ class KnowledgeSourceRetrieval(ABC):
      - Recuperar documentos relevantes para una consulta (retrieve).
     """
 
-    def __init__(self, settings: Settings, embedding_client: EmbeddingService, qdrant_client: AsyncQdrantClient, default_top_k: int) -> None:
+    def __init__(self, settings: Settings, embedding_client: EmbeddingService, qdrant_client: AsyncQdrantClient) -> None:
         self.settings = settings
         self.embedding_client = embedding_client
         self.qdrant_client = qdrant_client
-        self.default_top_k = default_top_k
 
 
     @abstractmethod
-    async def retrieve(self, query: str, source: KnowledgeSourceDefinition, query_filter: Filter | None = None) -> list[RetrievalDocument]:
+    async def retrieve(
+        self,  
+        query: str, 
+        limit: int, 
+        source: KnowledgeSourceDefinition, 
+        query_filter: Filter | None = None,
+    ) -> list[RetrievalDocument]:
         raise NotImplementedError
 
 

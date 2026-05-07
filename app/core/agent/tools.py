@@ -65,6 +65,7 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
 
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
+            limit=10,
             query=query,
             source_ids=["employees"],
             query_filter=qdrant_filter,
@@ -111,6 +112,7 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         """
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
+            limit=5,
             query=query,
             source_ids=["devices"],
         )
@@ -163,6 +165,7 @@ def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             query=", ".join(valid_ips),
             source_ids=["devices"],
+            limit=len(valid_ips),
             query_filter=qdrant_filter,
         )
 
@@ -213,6 +216,7 @@ def register_mac_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
             query=", ".join(valid_macs),
+            limit=len(valid_macs),
             source_ids=["devices"],
             query_filter=qdrant_filter,
         )
@@ -267,6 +271,7 @@ def register_serial_number_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
             query=", ".join(normalized_serial_numbers),
+            limit=len(normalized_serial_numbers),
             source_ids=["devices"],
             query_filter=qdrant_filter,
         )
@@ -304,6 +309,7 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         """
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
+            limit=5,
             query=query,
             source_ids=["manuals"],
         )
@@ -336,6 +342,7 @@ def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         """
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
+            limit=3,
             query=query,
             source_ids=["tickets"],
         )

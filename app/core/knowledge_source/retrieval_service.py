@@ -22,7 +22,6 @@ class KnowledgeSourceRetrievalService:
     """
 
     def __init__(self, settings: Settings, embedding_client: EmbeddingService) -> None:
-        self.default_top_k = 10
         self.settings = settings
         self.embedding_client = embedding_client
         self.qdrant_client = AsyncQdrantClient(
@@ -35,18 +34,22 @@ class KnowledgeSourceRetrievalService:
                 settings=settings,
                 embedding_client=embedding_client,
                 qdrant_client=self.qdrant_client,
-                default_top_k=self.default_top_k,
             ),
             "hybrid": HybridKnowledgeSourceRetrieval(
                 settings=settings,
                 embedding_client=embedding_client,
                 qdrant_client=self.qdrant_client,
-                default_top_k=self.default_top_k,
             ),
         }
 
 
-    async def retrieve(self, query: str, source_ids: list[str], query_filter: Filter | None = None) -> RetrievedContext:
+    async def retrieve(
+            self, 
+            query: str, 
+            limit: int,
+            source_ids: list[str], 
+            query_filter: Filter | None = None
+    ) -> RetrievedContext:
         # Limpieza de la query básica
         rewritten_query = self._rewrite_query(query)
 
@@ -62,6 +65,7 @@ class KnowledgeSourceRetrievalService:
                 await retriever.retrieve(
                     query=rewritten_query,
                     source=source,
+                    limit=limit,
                     query_filter=query_filter,
                 )
             )

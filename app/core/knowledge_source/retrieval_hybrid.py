@@ -11,7 +11,13 @@ class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
      - Los vectores dispersos son las representaciones léxicas.
     """
 
-    async def retrieve(self, query: str, source: KnowledgeSourceDefinition, query_filter: Filter | None = None) -> list[RetrievalDocument]:
+    async def retrieve(
+            self, 
+            query: str, 
+            limit: int,
+            source: KnowledgeSourceDefinition, 
+            query_filter: Filter | None = None,
+        ) -> list[RetrievalDocument]:
         if source.dense_vector_name is None:
             raise ValueError(f"La fuente de conocimiento '{source.id}' no tiene vector denso configurado.")
         if source.sparse_vector_name is None:
@@ -31,7 +37,7 @@ class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
                     query=query_vector,
                     using=source.dense_vector_name,
                     filter=query_filter,
-                    limit=self.default_top_k,
+                    limit=limit,
                 ),
                 models.Prefetch(
                     query=models.Document(
@@ -40,11 +46,11 @@ class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
                     ),
                     using=source.sparse_vector_name,
                     filter=query_filter,
-                    limit=self.default_top_k,
+                    limit=limit,
                 ),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF),
-            limit=self.default_top_k,
+            limit=limit,
             with_payload=True,
         )
         points = results.points if hasattr(results, "points") else []
