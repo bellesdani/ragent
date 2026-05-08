@@ -17,10 +17,10 @@ class KnowledgeSourceCatalog():
                 id="devices",
                 name="Devices",
                 description="Información sobre dispositivos de la empresa, como servidores y equipos de usuario y planta.",
-                retrieval_type="semantic",
+                retrieval_type="hybrid",
                 collection_name="devices",
-                dense_vector_name=None,
-                sparse_vector_name=None,
+                dense_vector_name="dense_vector",
+                sparse_vector_name="sparse_vector",
             ),
             "employees": KnowledgeSourceDefinition(
                 id="employees",

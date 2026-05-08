@@ -2,6 +2,7 @@ from app.config import Settings
 from app.core.agent.service import AgentService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion_devices import DevicesKnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_tickets import TicketsKnowledgeSourceIngestor
 
 
@@ -27,4 +28,13 @@ class KnowledgeSourceIngestorFactory:
                 agent_service=self.agent_service,
                 definition=definition,
             )
+        elif definition.id == "devices":
+            return DevicesKnowledgeSourceIngestor(
+                settings=self.settings,
+                definition=definition,
+            )
+        elif definition.id == "employees":
+            raise NotImplementedError("Todavía no se ha implementado el ingestor de empleados")
+        elif definition.id == "manuals":
+            raise NotImplementedError("Todavía no se ha implementado el ingestor de empleados")
         raise ValueError(f"{definition.id} no tiene un modelo de ingesta definido")

@@ -102,3 +102,32 @@ class Ticket(BaseModel):
     ticket_creator_email: str | None = None
 
     articles: list[TicketArticle]
+
+
+class Device(BaseModel):
+    id: int
+    name: str
+    type: str
+    os: str | None = None
+    os_version: str | None = None
+    os_serial: str | None = None
+    architecture: str | None = None
+    hostname: str | None = None
+    current_ip: str | None = None
+    ips: list[str] 
+    mac_addresses: list[str] 
+    vlans: list[str] 
+    serial_number: str | None = None
+    manufacturer: str | None = None
+    model: str | None = None
+    description: str | None = None
+    comments: str | None = None
+    location: str | None = None
+    printer_model: str | None = None
+    owner: str | None = None
+    ram_gb: int = 0
+    disk_gb: int = 0
+    cpu: list[str] 
+    user: str | None = None
+    last_reboot: datetime | None = None
+    created_at: datetime

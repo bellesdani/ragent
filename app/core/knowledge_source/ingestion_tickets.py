@@ -22,12 +22,12 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
      - Añadir datos de tickets a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
-    def __init__(self, settings: Settings, agent_service: AgentService, definition: KnowledgeSourceDefinition) -> None:
+    def __init__(self, settings: Settings, definition: KnowledgeSourceDefinition, agent_service: AgentService) -> None:
         super().__init__(
             settings=settings,
             definition=definition,
-            agent_service=agent_service,
         )
+        self.agent_service = agent_service
 
 
     async def create_knowledge_source(self):
@@ -251,15 +251,7 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     
     def _build_ticket_metadata(self, ticket: Ticket):
         return ticket.model_dump(mode="json")
-    
-
-    async def _get_embedding_size(self) -> int:
-        embedding = await self.embedding_client.create_embedding(
-            input_text="ticket",
-            model=self.settings.embedding_model,
-        )
-        return len(embedding)
-    
+        
 
     def _clean_text(self, text: Optional[str]) -> str:
         if not text:

@@ -2,7 +2,6 @@ from app.config import Settings
 from abc import ABC, abstractmethod
 from qdrant_client import AsyncQdrantClient
 from app.core.embeddings import EmbeddingService
-from app.core.agent.service import AgentService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 
 
@@ -18,9 +17,8 @@ class KnowledgeSourceIngestor(ABC):
      - Añadir datos a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
-    def __init__(self, settings: Settings, agent_service: AgentService, definition: KnowledgeSourceDefinition) -> None:
+    def __init__(self, settings: Settings, definition: KnowledgeSourceDefinition) -> None:
         self.settings = settings
-        self.agent_service = agent_service
         self.embedding_client = EmbeddingService(
             settings=settings,
         )
