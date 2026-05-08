@@ -125,8 +125,8 @@ class Device(BaseModel):
     location: str | None = None
     printer_model: str | None = None
     owner: str | None = None
-    ram_gb: int = 0
-    disk_gb: int = 0
+    ram_gb: float = 0
+    disk_gb: float = 0
     cpu: list[str] 
     user: str | None = None
     last_reboot: str | None = None
