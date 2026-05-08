@@ -129,5 +129,5 @@ class Device(BaseModel):
     disk_gb: int = 0
     cpu: list[str] 
     user: str | None = None
-    last_reboot: datetime | None = None
-    created_at: datetime
+    last_reboot: str | None = None
+    created_at: str
