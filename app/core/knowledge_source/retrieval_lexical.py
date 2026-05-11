@@ -1,11 +1,14 @@
+from qdrant_client import models
 from qdrant_client.models import Filter
 from app.core.knowledge_source.retrieval_abc import KnowledgeSourceRetrieval
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievalDocument
 
 
-class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
+class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
     """
-    Esta clase recupera documentos mediante busqueda semántica.
+    Esta clase recupera documentos mediante busqueda híbrida.
+     - Los vectores densos son los embeddings de representaciones semánticas.
+     - Los vectores dispersos son las representaciones léxicas.
     """
 
     async def retrieve(
@@ -13,16 +16,16 @@ class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
             query: str, 
             limit: int,
             source: KnowledgeSourceDefinition, 
-            query_filter: Filter | None = None
-    ) -> list[RetrievalDocument]:
-        # Buscamos los puntos con mayor similitud semantica a partir de los embeddings del texto semántico
+            query_filter: Filter | None = None,
+        ) -> list[RetrievalDocument]:
+        #  Buscamos los puntos con mayor similitud léxica a partir del texto léxico
         results = await self.qdrant_client.query_points(
             collection_name=source.collection_name,
-            query=await self.embedding_client.create_embedding(
-                input_text=query,
-                model=self.settings.embedding_model,
+            query=models.Document(
+                text=query,
+                model="Qdrant/bm25",
             ),
-            using=source.dense_vector_name,
+            using=source.sparse_vector_name,
             limit=limit,
             with_payload=True,
             query_filter=query_filter,

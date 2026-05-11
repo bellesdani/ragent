@@ -32,7 +32,7 @@ class KnowledgeSourceDefinition:
     payload_keys: PayloadKeys
     dense_vector_name: str | None
     sparse_vector_name: str | None
-    retrieval_type: Literal["semantic", "hybrid"]
+    retrieval_type: Literal["semantic", "lexical", "hybrid"]
 
 
 class TicketArticleRow(BaseModel):

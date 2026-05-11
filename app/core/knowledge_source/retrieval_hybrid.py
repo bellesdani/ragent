@@ -18,18 +18,6 @@ class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
             source: KnowledgeSourceDefinition, 
             query_filter: Filter | None = None,
         ) -> list[RetrievalDocument]:
-        # Validamos que existen los nombres de los vectores en la definición del knowledge_source
-        if source.dense_vector_name is None:
-            raise ValueError(f"La fuente de conocimiento '{source.id}' no tiene vector denso configurado.")
-        if source.sparse_vector_name is None:
-            raise ValueError(f"La fuente de conocimiento '{source.id}' no tiene vector disperso configurado.")
-
-        # Creamos el embedding
-        query_vector = await self.embedding_client.create_embedding(
-            input_text=query,
-            model=self.settings.embedding_model,
-        )
-
         # Buscamos por similitud semantica y por coincidencia lexica, y fusionamos los resultados
         #  - La búsqueda semántica no cambia respecto a otros casos: obtenemos los embeddings más próximos a la query
         #  - Para la búsqueda léxica, utilzamos bm25. Es el estándar actual
@@ -37,7 +25,10 @@ class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
             collection_name=source.collection_name,
             prefetch=[
                 models.Prefetch(
-                    query=query_vector,
+                    query=await self.embedding_client.create_embedding(
+                        input_text=query,
+                        model=self.settings.embedding_model,
+                    ),
                     using=source.dense_vector_name,
                     filter=query_filter,
                     limit=limit,
@@ -57,5 +48,9 @@ class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
             limit=limit,
             with_payload=True,
         )
+        # Convertimos los puntos en "Documentos" para estandarizar la salida
         points = results.points if hasattr(results, "points") else []
-        return [self._point_to_document(point, knowledge_source=source) for point in points]
+        return [
+            self._point_to_document(point, knowledge_source=source) 
+            for point in points
+        ]
