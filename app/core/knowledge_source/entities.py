@@ -138,3 +138,21 @@ class Device(BaseModel):
     user: str | None = None
     last_reboot: str | None = None
     created_at: str | None = None
+
+
+class Phone(BaseModel):
+    number: str | None = None
+    extension: str | None = None
+
+
+class Employee(BaseModel):
+    id: int
+    first_name: str | None = None
+    last_name: str | None = None
+    full_name: str | None = None
+    normalized_full_name: str | None = None
+    alias: str | None = None
+    normalized_alias: str | None = None
+    department: str | None = None
+    emails: list[str] = Field(default_factory=list)
+    phones: list[Phone] = Field(default_factory=list)
