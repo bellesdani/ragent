@@ -8,13 +8,10 @@ from app.core.agent.entities import AgentDefinition, AgentDeps
 from app.core.agent.tools import (
     register_datetime_tool,
     register_calculator_tool, 
-    register_ip_retrieval_tool,
-    register_mac_retrieval_tool,
     register_devices_retrieval_tool,
     register_manuals_retrieval_tool,
     register_tickets_retrieval_tool,
     register_employees_retrieval_tool,
-    register_serial_number_retrieval_tool,
 )
 
 
@@ -56,13 +53,10 @@ class AgentFactory:
         )
         # Definimos las tools que el agente puede utilizar 
         if definition.enable_tools:
-            register_serial_number_retrieval_tool(agent)
             register_employees_retrieval_tool(agent)
             register_devices_retrieval_tool(agent)
             register_manuals_retrieval_tool(agent)
             register_tickets_retrieval_tool(agent)
-            register_mac_retrieval_tool(agent)
-            register_ip_retrieval_tool(agent)
             register_calculator_tool(agent)
             register_datetime_tool(agent)
 
