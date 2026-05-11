@@ -193,21 +193,21 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     def _build_lexical_text(self, employee: Employee) -> str:
         lines = []
         if employee.full_name and employee.alias:
-            lines.append(f"Nombre: {employee.full_name} ({employee.alias})")
+            lines.append(f"{employee.full_name} {employee.alias}")
         if employee.full_name and not employee.alias:
-            lines.append(f"Nombre: {employee.full_name}")
+            lines.append(f"{employee.full_name}")
         if employee.department:
-            lines.append(f"Departamento: {employee.department}")
+            lines.append(f"{employee.department}")
         if employee.emails:
-            lines.append(f"Emails: {",".join(map(str, employee.emails))}")
+            lines.append("".join(map(str, employee.emails)))
         if employee.phones:
             phones_str = []
             for phone in employee.phones:
                 if phone.extension:
-                    phones_str.append(f"{phone.number} (Extensión: {phone.extension})")
+                    phones_str.append(f"{phone.number} {phone.extension}")
                 else:
                     phones_str.append(f"{phone.number}")
-            lines.append(f"Teléfonos: {",".join(phones_str)}")
+            lines.append("".join(phones_str))
         return "\n".join(lines)
     
 
@@ -221,13 +221,5 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(f"Departamento: {employee.department}")
         if employee.emails:
             lines.append(f"Emails: {",".join(map(str, employee.emails))}")
-        if employee.phones:
-            phones_str = []
-            for phone in employee.phones:
-                if phone.extension:
-                    phones_str.append(f"{phone.number} (Extensión: {phone.extension})")
-                else:
-                    phones_str.append(f"{phone.number}")
-            lines.append(f"Teléfonos: {",".join(phones_str)}")
         return "\n".join(lines)
     

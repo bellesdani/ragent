@@ -172,36 +172,33 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     def _build_lexical_text(self, device: Device) -> str:
         lines = []
         if device.name:
-            lines.append(f"Dispositivo: {device.name}")
-        if device.type:
-            lines.append(f"Tipo: {device.type}")
-        if device.os:
-            lines.append(f"Sistema operativo: {device.os}")
-        if device.architecture:
-            lines.append(f"Arquitectura: {device.architecture}")
+            lines.append(f"{device.name}")
         if device.hostname:
-            lines.append(f"Nombre del host: {device.hostname}")
+            lines.append(f"{device.hostname}")
+        if device.type:
+            lines.append(f"{device.type}")
+        if device.os:
+            lines.append(f"{device.os}")
+        if device.architecture:
+            lines.append(f"{device.architecture}")
         if device.manufacturer:
-            lines.append(f"Fabricante: {device.manufacturer}")
+            lines.append(f"{device.manufacturer}")
         if device.model:
-            lines.append(f"Modelo: {device.model}")
+            lines.append(f"{device.model}")
         if device.serial_number:
-            lines.append(f"Número de serie: {device.serial_number}")
+            lines.append(f"{device.serial_number}")
         if device.owner:
-            lines.append(f"Propietario: {device.owner}")
+            lines.append(f"{device.owner}")
         if device.user:
-            lines.append(f"Usuario: {device.user}")
+            lines.append(f"{device.user}")
         if device.ips:
-            ips = ",".join(map(str, device.ips))
-            lines.append(f"Direcciones IP: {ips}")
+            lines.append(f"{" ".join(map(str, device.ips))}")
         if device.vlans:
-            vlans = ",".join(map(str, device.vlans))
-            lines.append(f"VLANs: {vlans}")
+            lines.append(f"{" ".join(map(str, device.vlans))}")
         if device.mac_addresses:
-            mac_addresses = ",".join(map(str, device.mac_addresses))
-            lines.append(f"Direcciones MAC: {mac_addresses}")
+            lines.append(f"{" ".join(map(str, device.mac_addresses))}")
         if device.comments:
-            lines.append(f"Información adicional: {device.comments}")
+            lines.append(f"{device.comments}")
         return "\n".join(lines)
     
 
@@ -209,14 +206,14 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         lines = []
         if device.name:
             lines.append(f"Dispositivo: {device.name}")
+        if device.hostname:
+            lines.append(f"Nombre del host: {device.hostname}")
         if device.type:
             lines.append(f"Tipo: {device.type}")
         if device.os:
             lines.append(f"Sistema operativo: {device.os}")
         if device.architecture:
             lines.append(f"Arquitectura: {device.architecture}")
-        if device.hostname:
-            lines.append(f"Nombre del host: {device.hostname}")
         if device.manufacturer:
             lines.append(f"Fabricante: {device.manufacturer}")
         if device.model:
@@ -230,5 +227,5 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         if device.vlans and len(device.vlans) > 0:
             vlans = ",".join(map(str, device.vlans))
             lines.append(f"VLANs: {vlans}")
-        return "\n".join(lines)
+        return ".\n".join(lines)
     

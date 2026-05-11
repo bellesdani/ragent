@@ -23,8 +23,8 @@ class KnowledgeSourceCatalog():
                 sparse_vector_name="sparse_vector",
                 payload_keys=PayloadKeys(
                     metadata_key="device",
-                    lexical_content_key="content",
-                    semantic_content_key="content",
+                    lexical_content_key="lexical_content",
+                    semantic_content_key="semantic_content",
                 )
             ),
             "employees": KnowledgeSourceDefinition(
@@ -37,8 +37,8 @@ class KnowledgeSourceCatalog():
                 sparse_vector_name="sparse_vector",
                 payload_keys=PayloadKeys(
                     metadata_key="employee",
-                    lexical_content_key="content",
-                    semantic_content_key="content",
+                    lexical_content_key="lexical_content",
+                    semantic_content_key="semantic_content",
                 )
             ),
             "manuals": KnowledgeSourceDefinition(
