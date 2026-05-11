@@ -1,7 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel
 from typing import Any, Literal
 from dataclasses import dataclass
+from pydantic import BaseModel, Field
 
 
 class RetrievalDocument(BaseModel):
@@ -106,17 +106,17 @@ class Ticket(BaseModel):
 
 class Device(BaseModel):
     id: int
-    name: str
-    type: str
+    name: str | None = None
+    type: str | None = None
     os: str | None = None
     os_version: str | None = None
     os_serial: str | None = None
     architecture: str | None = None
     hostname: str | None = None
     current_ip: str | None = None
-    ips: list[str] 
-    mac_addresses: list[str] 
-    vlans: list[str] 
+    ips: list[str] = Field(default_factory=list)
+    mac_addresses: list[str] = Field(default_factory=list)
+    vlans: list[str] = Field(default_factory=list)
     serial_number: str | None = None
     manufacturer: str | None = None
     model: str | None = None
@@ -125,9 +125,9 @@ class Device(BaseModel):
     location: str | None = None
     printer_model: str | None = None
     owner: str | None = None
-    ram_gb: float = 0
-    disk_gb: float = 0
-    cpu: list[str] 
+    ram_gb: float | None = None
+    disk_gb: float | None = None
+    cpu: list[str] = Field(default_factory=list)
     user: str | None = None
     last_reboot: str | None = None
-    created_at: str
+    created_at: str | None = None
