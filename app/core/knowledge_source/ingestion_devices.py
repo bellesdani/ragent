@@ -15,10 +15,10 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
      - Añadir datos de tickets a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
-    def __init__(self, settings: Settings, definition: KnowledgeSourceDefinition) -> None:
+    def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition) -> None:
         super().__init__(
             settings=settings,
-            definition=definition,
+            knowledge_source=knowledge_source,
         )
 
 
@@ -58,7 +58,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name="device.serial_number",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.serial_number",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
@@ -66,7 +66,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name="device.ip_addressess",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ip_addressess",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
@@ -74,7 +74,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name="device.mac_addresses",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.mac_addresses",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
@@ -103,13 +103,13 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         payloads = []
         for device in devices:
             metadata = self._build_device_metadata(device)
-            semantic_text = self._build_lexical_text(device)
-            lexical_text = self._build_semantical_text(device)
+            lexical_text = self._build_lexical_text(device)
+            semantic_text = self._build_semantical_text(device)
 
             payload = {
-                "semantic_text": semantic_text,
-                "lexical_text": lexical_text,
-                "device": metadata
+                self.knowledge_source.payload_keys.semantic_content_key: semantic_text,
+                self.knowledge_source.payload_keys.lexical_content_key: lexical_text,
+                self.knowledge_source.payload_keys.metadata_key: metadata
             }
             payloads.append(payload)
                 
@@ -123,14 +123,14 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         for payload in payloads:
             points.append(
                 models.PointStruct(
-                    id=payload["device"]["id"],
+                    id=payload[self.knowledge_source.payload_keys.metadata_key]["id"],
                     vector={
                         self.knowledge_source.dense_vector_name: await self.embedding_client.create_embedding(
-                            input_text=payload["semantic_text"],
+                            input_text=payload[self.knowledge_source.payload_keys.semantic_content_key],
                             model=self.settings.embedding_model
                         ),
                         self.knowledge_source.sparse_vector_name: models.Document(
-                            text=payload["lexical_text"],
+                            text=payload[self.knowledge_source.payload_keys.lexical_content_key],
                             model="Qdrant/bm25",
                         ),
                     },
@@ -192,7 +192,6 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(f"Información adicional: {device.comments}")
         return "\n".join(lines)
     
-    
 
     def _build_semantical_text(self, device: Device):
         lines = []
@@ -220,7 +219,4 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             vlans = ",".join(map(str, device.vlans))
             lines.append(f"VLANs: {vlans}")
         return "\n".join(lines)
-    
-    
-
     

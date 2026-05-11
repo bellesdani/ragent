@@ -22,10 +22,10 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
      - Añadir datos de tickets a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
-    def __init__(self, settings: Settings, definition: KnowledgeSourceDefinition, agent_service: AgentService) -> None:
+    def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition, agent_service: AgentService) -> None:
         super().__init__(
             settings=settings,
-            definition=definition,
+            knowledge_source=knowledge_source,
         )
         self.agent_service = agent_service
 
@@ -66,7 +66,7 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name="metadata.ticket_title",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ticket_title",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True,
@@ -77,7 +77,7 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name="metadata.ticket_number",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ticket_number",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
@@ -169,9 +169,9 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             metadata = self._build_ticket_metadata(ticket)
 
             payload = {
-                "content": content,
-                "summarized_content": summarized_content,
-                "metadata": metadata
+                self.knowledge_source.payload_keys.lexical_content_key: content,
+                self.knowledge_source.payload_keys.semantic_content_key: summarized_content,
+                self.knowledge_source.payload_keys.metadata_key: metadata
             }
             payloads.append(payload)
                 
@@ -183,19 +183,16 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         #  - vector: Vectores para la búsqueda, densos para búsqueda semántica y dispersos para busqueda léxica 
         points: list[models.PointStruct] = []
         for payload in payloads:
-            # Calculamos el embedding
-            embedding = await self.embedding_client.create_embedding(
-                input_text=payload["summarized_content"],
-                model=self.settings.embedding_model
-            )
-            # Preparamos el embedding
             points.append(
                 models.PointStruct(
-                    id=payload["metadata"]["ticket_id"],
+                    id=payload[self.knowledge_source.payload_keys.metadata_key]["ticket_id"],
                     vector={
-                        self.knowledge_source.dense_vector_name: embedding,
+                        self.knowledge_source.dense_vector_name: await self.embedding_client.create_embedding(
+                            input_text=payload[self.knowledge_source.payload_keys.semantic_content_key],
+                            model=self.settings.embedding_model
+                        ),
                         self.knowledge_source.sparse_vector_name: models.Document(
-                            text=payload["content"],
+                            text=payload[self.knowledge_source.payload_keys.lexical_content_key],
                             model="Qdrant/bm25",
                         ),
                     },

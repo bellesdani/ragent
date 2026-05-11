@@ -31,4 +31,4 @@ class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
             query_filter=query_filter,
         )
         points = results.points if hasattr(results, "points") else []
-        return [self._point_to_document(point, source=source) for point in points]
+        return [self._point_to_document(point, knowledge_source=source) for point in points]

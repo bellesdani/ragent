@@ -17,7 +17,7 @@ class KnowledgeSourceIngestor(ABC):
      - Añadir datos a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
-    def __init__(self, settings: Settings, definition: KnowledgeSourceDefinition) -> None:
+    def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition) -> None:
         self.settings = settings
         self.embedding_client = EmbeddingService(
             settings=settings,
@@ -26,7 +26,7 @@ class KnowledgeSourceIngestor(ABC):
             url=settings.qdrant_url, 
             api_key=settings.qdrant_api_key or None
         )
-        self.knowledge_source = definition
+        self.knowledge_source = knowledge_source
 
 
     @abstractmethod

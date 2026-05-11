@@ -26,12 +26,12 @@ class KnowledgeSourceIngestorFactory:
             return TicketsKnowledgeSourceIngestor(
                 settings=self.settings,
                 agent_service=self.agent_service,
-                definition=definition,
+                knowledge_source=definition,
             )
         elif definition.id == "devices":
             return DevicesKnowledgeSourceIngestor(
                 settings=self.settings,
-                definition=definition,
+                knowledge_source=definition,
             )
         elif definition.id == "employees":
             raise NotImplementedError("Todavía no se ha implementado el ingestor de empleados")

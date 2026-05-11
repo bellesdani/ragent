@@ -35,11 +35,15 @@ class KnowledgeSourceRetrieval(ABC):
         raise NotImplementedError
 
 
-    def _point_to_document(self, point: Any, source: KnowledgeSourceDefinition) -> RetrievalDocument:
+    def _point_to_document(self, point: Any, knowledge_source: KnowledgeSourceDefinition) -> RetrievalDocument:
         payload = dict(point.payload)
+        if knowledge_source.payload_keys.lexical_content_key:
+            content_key = knowledge_source.payload_keys.lexical_content_key
+        else:
+            content_key = knowledge_source.payload_keys.semantic_content_key 
         return RetrievalDocument(
-            id=f"{source.id}:{point.id}",
+            id=f"{knowledge_source.id}:{point.id}",
             score=float(point.score),
-            content=payload["content"],
-            metadata=payload["metadata"],
+            content=payload[content_key],
+            metadata=payload[knowledge_source.payload_keys.metadata_key],
         )

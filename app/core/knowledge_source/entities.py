@@ -17,15 +17,22 @@ class RetrievedContext(BaseModel):
 
 
 @dataclass(frozen=True)
+class PayloadKeys:
+    metadata_key: str
+    semantic_content_key: str
+    lexical_content_key: str | None = None
+
+
+@dataclass(frozen=True)
 class KnowledgeSourceDefinition:
     id: str
     name: str
     description: str
     collection_name: str
+    payload_keys: PayloadKeys
     dense_vector_name: str | None
     sparse_vector_name: str | None
     retrieval_type: Literal["semantic", "hybrid"]
-
 
 
 class TicketArticleRow(BaseModel):
