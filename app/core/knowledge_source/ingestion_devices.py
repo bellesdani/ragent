@@ -130,7 +130,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                             model=self.settings.embedding_model
                         ),
                         self.knowledge_source.sparse_vector_name: models.Document(
-                            text=payload["content"],
+                            text=payload["lexical_text"],
                             model="Qdrant/bm25",
                         ),
                     },
