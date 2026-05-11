@@ -194,7 +194,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     
     
 
-    async def _build_semantical_text(self, device: Device):
+    def _build_semantical_text(self, device: Device):
         lines = []
         if device.name:
             lines.append(f"Dispositivo: {device.name}")
