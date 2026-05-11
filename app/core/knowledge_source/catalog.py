@@ -23,22 +23,22 @@ class KnowledgeSourceCatalog():
                 sparse_vector_name="sparse_vector",
                 payload_keys=PayloadKeys(
                     metadata_key="device",
-                    lexical_content_key="lexical_text",
-                    semantic_content_key="semantic_text",
+                    lexical_content_key="content",
+                    semantic_content_key="content",
                 )
             ),
             "employees": KnowledgeSourceDefinition(
                 id="employees",
                 name="Employees",
                 description="Información sobre empleados y su contacto corporativo: correo, teléfono y extensión.",
-                retrieval_type="semantic",
+                retrieval_type="hybrid",
                 collection_name="employees",
                 dense_vector_name="dense_vector",
                 sparse_vector_name="sparse_vector",
                 payload_keys=PayloadKeys(
                     metadata_key="employee",
-                    lexical_content_key="lexical_text",
-                    semantic_content_key="semantic_text",
+                    lexical_content_key="content",
+                    semantic_content_key="content",
                 )
             ),
             "manuals": KnowledgeSourceDefinition(

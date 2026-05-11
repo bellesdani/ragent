@@ -72,15 +72,22 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             ),
         )
 
+
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.usernames",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+
+
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.emails",
-            field_schema=models.TextIndexParams(
-                type=models.TextIndexType.TEXT,
-                lowercase=True,
-                tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=True
-            )
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
         )
 
         await self.qdrant_client.create_payload_index(
@@ -177,6 +184,7 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
     def _build_metadata(self, employee: Employee):
         employee_dict = employee.model_dump(mode="json")
+        employee_dict['usernames'] = [ email.split('@')[0] for email in employee.emails]
         employee_dict['phone_numbers'] = [ phone.number for phone in employee.phones]
         employee_dict['phone_extensions'] = [ phone.extension for phone in employee.phones]
         return employee_dict
