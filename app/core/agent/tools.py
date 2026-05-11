@@ -57,7 +57,7 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             qdrant_filter = Filter(
                 must=[
                     FieldCondition(
-                        key="metadata.department",
+                        key="employee.department",
                         match=MatchText(text=department),
                     )
                 ]
@@ -156,7 +156,7 @@ def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         qdrant_filter = Filter(
             must=[
                 FieldCondition(
-                    key="metadata.ips",
+                    key="device.ips",
                     match=MatchAny(any=valid_ips)
                 )
             ]
@@ -208,7 +208,7 @@ def register_mac_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         qdrant_filter = Filter(
             must=[
                 FieldCondition(
-                    key="metadata.mac_addresses",
+                    key="device.mac_addresses",
                     match=MatchAny(any=valid_macs)
                 )
             ]
@@ -263,7 +263,7 @@ def register_serial_number_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         qdrant_filter = Filter(
             must=[
                 FieldCondition(
-                    key="metadata.serial_number",
+                    key="device.serial_number",
                     match=MatchAny(any=normalized_serial_numbers)
                 )
             ]
