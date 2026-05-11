@@ -107,8 +107,9 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
 
         Args:
             query: Consulta autónoma, concreta y optimizada para búsqueda.
-            Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
-            No uses referencias ambiguas como "su", "ese equipo", "el anterior" o "esa persona".
+                Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
+                No uses referencias ambiguas como "su", "ese equipo", "el anterior" o "esa persona".
+            
         """
         # Llamada a la base de conocimiento
         retrieval = await context.deps.retriever.retrieve(
