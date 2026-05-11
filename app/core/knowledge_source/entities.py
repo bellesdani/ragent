@@ -45,17 +45,14 @@ class TicketArticleRow(BaseModel):
     ticket_title: str
     ticket_created_at: datetime
     ticket_closed_at: datetime
-
     ticket_customer_firstname: str | None = None
     ticket_customer_lastname: str | None = None
     ticket_customer_department: str | None = None
     ticket_customer_email: str | None = None
-
     ticket_creator_firstname: str | None = None
     ticket_creator_lastname: str | None = None
     ticket_creator_department: str | None = None
     ticket_creator_email: str | None = None
-
     article_id: int
     article_from: str | None = None
     article_to: str | None = None
@@ -64,7 +61,6 @@ class TicketArticleRow(BaseModel):
     article_body: str | None = None
     article_internal: bool
     article_created_at: datetime
-
     article_creator_firstname: str | None = None
     article_creator_lastname: str | None = None
     article_creator_department: str | None = None
@@ -72,42 +68,38 @@ class TicketArticleRow(BaseModel):
 
 
 class TicketArticle(BaseModel):
-    article_id: int
-    article_from: str | None = None
-    article_to: str | None = None
-    article_subject: str | None = None
-    article_content_type: str | None = None
-    article_body: str | None = None
-    article_internal: bool
-    article_created_at: datetime
-
-    article_creator_firstname: str | None = None
-    article_creator_lastname: str | None = None
-    article_creator_department: str | None = None
-    article_creator_email: str | None = None
+    id: int
+    from_email: str | None = None
+    to_email: str | None = None
+    subject: str | None = None
+    content_type: str | None = None
+    body: str | None = None
+    internal: bool
+    created_at: datetime
+    creator_firstname: str | None = None
+    creator_lastname: str | None = None
+    creator_department: str | None = None
+    creator_email: str | None = None
 
 
 class Ticket(BaseModel):
-    ticket_id: int
-    ticket_group_id: int
-    ticket_priority_id: int
-    ticket_state_id: int
-    ticket_organization_id: int | None = None
-    ticket_number: str
-    ticket_title: str
-    ticket_created_at: datetime
-    ticket_closed_at: datetime
-
-    ticket_customer_firstname: str | None = None
-    ticket_customer_lastname: str | None = None
-    ticket_customer_department: str | None = None
-    ticket_customer_email: str | None = None
-
-    ticket_creator_firstname: str | None = None
-    ticket_creator_lastname: str | None = None
-    ticket_creator_department: str | None = None
-    ticket_creator_email: str | None = None
-
+    id: int
+    group_id: int
+    priority_id: int
+    state_id: int
+    organization_id: int | None = None
+    number: str
+    title: str
+    created_at: datetime
+    closed_at: datetime
+    customer_firstname: str | None = None
+    customer_lastname: str | None = None
+    customer_department: str | None = None
+    customer_email: str | None = None
+    creator_firstname: str | None = None
+    creator_lastname: str | None = None
+    creator_department: str | None = None
+    creator_email: str | None = None
     articles: list[TicketArticle]
 
 

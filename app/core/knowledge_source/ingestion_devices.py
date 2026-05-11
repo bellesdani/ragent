@@ -23,18 +23,20 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
 
     async def create_knowledge_source(self):
+        # Si la colección no existe, la creamos
         if await self.qdrant_client.collection_exists(self.knowledge_source.collection_name):
             return False
 
-        if self.knowledge_source.dense_vector_name is None:
-            raise ValueError(f"La fuente de conocimiento '{self.knowledge_source.id}' no tiene vector denso configurado.")
-        if self.knowledge_source.sparse_vector_name is None:
-            raise ValueError(f"La fuente de conocimiento '{self.knowledge_source.id}' no tiene vector disperso configurado.")
-                 
+        # Validamos que hemos configurado el nombre de los vectores en la definición
+        dense_vector_name = self.knowledge_source.dense_vector_name
+        sparse_vector_name = self.knowledge_source.sparse_vector_name
+        assert dense_vector_name is not None and sparse_vector_name is not None
+
+        # Creamos la colección
         await self.qdrant_client.create_collection(
             collection_name=self.knowledge_source.collection_name,
             vectors_config={
-                self.knowledge_source.dense_vector_name: models.VectorParams(
+                dense_vector_name: models.VectorParams(
                     size=2048,
                     distance=models.Distance.COSINE,
                     on_disk=False,
@@ -47,7 +49,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 )
             },
             sparse_vectors_config={
-                self.knowledge_source.sparse_vector_name: models.SparseVectorParams(
+                sparse_vector_name: models.SparseVectorParams(
                     index=models.SparseIndexParams(
                         on_disk=True,
                     ),
@@ -56,7 +58,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             },
         )
 
-
+        # Añadimos índices para optimizar los filtros
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.hostname",
@@ -67,7 +69,6 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 phrase_matching=True
             )
         )
-
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.serial_number",
@@ -75,7 +76,6 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
-
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ip_addressess",
@@ -83,7 +83,6 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
-
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.mac_addresses",
@@ -131,17 +130,21 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         #  - id: Identificador del punto
         #  - payload: Payload del punto
         #  - vector: Vectores para la búsqueda, densos para búsqueda semántica y dispersos para busqueda léxica 
+        dense_vector_name = self.knowledge_source.dense_vector_name
+        sparse_vector_name = self.knowledge_source.sparse_vector_name
+        assert dense_vector_name is not None and sparse_vector_name is not None
+
         points: list[models.PointStruct] = []
         for payload in payloads:
             points.append(
                 models.PointStruct(
                     id=payload[self.knowledge_source.payload_keys.metadata_key]["id"],
                     vector={
-                        self.knowledge_source.dense_vector_name: await self.embedding_client.create_embedding(
+                        dense_vector_name: await self.embedding_client.create_embedding(
                             input_text=payload[self.knowledge_source.payload_keys.semantic_content_key],
                             model=self.settings.embedding_model
                         ),
-                        self.knowledge_source.sparse_vector_name: models.Document(
+                        sparse_vector_name: models.Document(
                             text=payload[self.knowledge_source.payload_keys.lexical_content_key],
                             model="Qdrant/bm25",
                         ),

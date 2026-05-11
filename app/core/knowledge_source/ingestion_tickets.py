@@ -31,18 +31,20 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
 
     async def create_knowledge_source(self):
+        # Si la colección no existe, la creamos
         if await self.qdrant_client.collection_exists(self.knowledge_source.collection_name):
             return False
+        
+        # Validamos que hemos configurado el nombre de los vectores en la definición
+        dense_vector_name = self.knowledge_source.dense_vector_name
+        sparse_vector_name = self.knowledge_source.sparse_vector_name
+        assert dense_vector_name is not None and sparse_vector_name is not None
 
-        if self.knowledge_source.dense_vector_name is None:
-            raise ValueError(f"La fuente de conocimiento '{self.knowledge_source.id}' no tiene vector denso configurado.")
-        if self.knowledge_source.sparse_vector_name is None:
-            raise ValueError(f"La fuente de conocimiento '{self.knowledge_source.id}' no tiene vector disperso configurado.")
-                 
+        # Creamos la colección
         await self.qdrant_client.create_collection(
             collection_name=self.knowledge_source.collection_name,
             vectors_config={
-                self.knowledge_source.dense_vector_name: models.VectorParams(
+                dense_vector_name: models.VectorParams(
                     size=2048,
                     distance=models.Distance.COSINE,
                     on_disk=False,
@@ -55,7 +57,7 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 )
             },
             sparse_vectors_config={
-                self.knowledge_source.sparse_vector_name: models.SparseVectorParams(
+                sparse_vector_name: models.SparseVectorParams(
                     index=models.SparseIndexParams(
                         on_disk=True,
                     ),
@@ -64,9 +66,10 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             },
         )
 
+        # Añadimos índices para optimizar los filtros
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ticket_title",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.title",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True,
@@ -74,14 +77,14 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 phrase_matching=True
             )
         )
-
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ticket_number",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.number",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
+
         return True
 
 
@@ -104,37 +107,37 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             # Si no existe el ticket, lo añadimos
             if ticket_article.ticket_id not in tickets:
                 tickets[ticket_article.ticket_id] = Ticket(
-                    ticket_id = ticket_article.ticket_id,
-                    ticket_group_id = ticket_article.ticket_group_id,
-                    ticket_priority_id = ticket_article.ticket_priority_id,
-                    ticket_state_id = ticket_article.ticket_state_id,
-                    ticket_organization_id = ticket_article.ticket_organization_id,
-                    ticket_number = ticket_article.ticket_number,
-                    ticket_title = ticket_article.ticket_title,
-                    ticket_created_at = ticket_article.ticket_created_at,
-                    ticket_closed_at = ticket_article.ticket_closed_at,
-                    ticket_customer_firstname = ticket_article.ticket_customer_firstname,
-                    ticket_customer_lastname = ticket_article.ticket_customer_lastname,
-                    ticket_customer_department = ticket_article.ticket_customer_department,
-                    ticket_customer_email = ticket_article.ticket_customer_email,
-                    ticket_creator_firstname = ticket_article.ticket_creator_firstname,
-                    ticket_creator_lastname = ticket_article.ticket_creator_lastname,
-                    ticket_creator_department = ticket_article.ticket_creator_department,
-                    ticket_creator_email = ticket_article.ticket_creator_email,
+                    id = ticket_article.ticket_id,
+                    group_id = ticket_article.ticket_group_id,
+                    priority_id = ticket_article.ticket_priority_id,
+                    state_id = ticket_article.ticket_state_id,
+                    organization_id = ticket_article.ticket_organization_id,
+                    number = ticket_article.ticket_number,
+                    title = ticket_article.ticket_title,
+                    created_at = ticket_article.ticket_created_at,
+                    closed_at = ticket_article.ticket_closed_at,
+                    customer_firstname = ticket_article.ticket_customer_firstname,
+                    customer_lastname = ticket_article.ticket_customer_lastname,
+                    customer_department = ticket_article.ticket_customer_department,
+                    customer_email = ticket_article.ticket_customer_email,
+                    creator_firstname = ticket_article.ticket_creator_firstname,
+                    creator_lastname = ticket_article.ticket_creator_lastname,
+                    creator_department = ticket_article.ticket_creator_department,
+                    creator_email = ticket_article.ticket_creator_email,
                     articles = [
                         TicketArticle(
-                            article_id = ticket_article.article_id,
-                            article_from = ticket_article.article_from,
-                            article_to = ticket_article.article_to,
-                            article_subject = ticket_article.article_subject,
-                            article_content_type = ticket_article.article_content_type,
-                            article_body = ticket_article.article_body,
-                            article_internal = ticket_article.article_internal,
-                            article_created_at = ticket_article.article_created_at,
-                            article_creator_firstname = ticket_article.article_creator_firstname,
-                            article_creator_lastname = ticket_article.article_creator_lastname,
-                            article_creator_department = ticket_article.article_creator_department,
-                            article_creator_email = ticket_article.article_creator_email,
+                            id = ticket_article.article_id,
+                            from_email = ticket_article.article_from,
+                            to_email = ticket_article.article_to,
+                            subject = ticket_article.article_subject,
+                            content_type = ticket_article.article_content_type,
+                            body = ticket_article.article_body,
+                            internal = ticket_article.article_internal,
+                            created_at = ticket_article.article_created_at,
+                            creator_firstname = ticket_article.article_creator_firstname,
+                            creator_lastname = ticket_article.article_creator_lastname,
+                            creator_department = ticket_article.article_creator_department,
+                            creator_email = ticket_article.article_creator_email,
                         )
                     ]
                 )
@@ -143,18 +146,18 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             else:
                 tickets[ticket_article.ticket_id].articles.append(
                     TicketArticle(
-                        article_id = ticket_article.article_id,
-                        article_from = ticket_article.article_from,
-                        article_to = ticket_article.article_to,
-                        article_subject = ticket_article.article_subject,
-                        article_content_type = ticket_article.article_content_type,
-                        article_body = ticket_article.article_body,
-                        article_internal = ticket_article.article_internal,
-                        article_created_at = ticket_article.article_created_at,
-                        article_creator_firstname = ticket_article.article_creator_firstname,
-                        article_creator_lastname = ticket_article.article_creator_lastname,
-                        article_creator_department = ticket_article.article_creator_department,
-                        article_creator_email = ticket_article.article_creator_email,
+                        id = ticket_article.article_id,
+                        from_email = ticket_article.article_from,
+                        to_email = ticket_article.article_to,
+                        subject = ticket_article.article_subject,
+                        content_type = ticket_article.article_content_type,
+                        body = ticket_article.article_body,
+                        internal = ticket_article.article_internal,
+                        created_at = ticket_article.article_created_at,
+                        creator_firstname = ticket_article.article_creator_firstname,
+                        creator_lastname = ticket_article.article_creator_lastname,
+                        creator_department = ticket_article.article_creator_department,
+                        creator_email = ticket_article.article_creator_email,
                     )
                 )
 
@@ -164,34 +167,38 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         #  - Metadata: Text to use for search and payload metadata
         payloads = []
         for ticket in tickets.values():
-            content = self._build_ticket_content(ticket)
-            summarized_content = await self._build_ticket_summarize_content(content)
             metadata = self._build_ticket_metadata(ticket)
+            lexical_content = self._build_lexical_content(ticket)
+            semantic_content = await self._build_semantic_content(lexical_content)
 
             payload = {
-                self.knowledge_source.payload_keys.lexical_content_key: content,
-                self.knowledge_source.payload_keys.semantic_content_key: summarized_content,
+                self.knowledge_source.payload_keys.lexical_content_key: lexical_content,
+                self.knowledge_source.payload_keys.semantic_content_key: semantic_content,
                 self.knowledge_source.payload_keys.metadata_key: metadata
             }
             payloads.append(payload)
                 
 
-        # En quinto lugar, definimos los puntos de Qdrant
+        # En quinto lugar, definimos los puntos de Qdrant y antes validamos que hemos configurado los vectores
         # Point:
         #  - id: Identificador del punto
         #  - payload: Payload del punto
         #  - vector: Vectores para la búsqueda, densos para búsqueda semántica y dispersos para busqueda léxica 
+        dense_vector_name = self.knowledge_source.dense_vector_name
+        sparse_vector_name = self.knowledge_source.sparse_vector_name
+        assert dense_vector_name is not None and sparse_vector_name is not None
+
         points: list[models.PointStruct] = []
         for payload in payloads:
             points.append(
                 models.PointStruct(
-                    id=payload[self.knowledge_source.payload_keys.metadata_key]["ticket_id"],
+                    id=payload[self.knowledge_source.payload_keys.metadata_key]["id"],
                     vector={
-                        self.knowledge_source.dense_vector_name: await self.embedding_client.create_embedding(
+                        dense_vector_name: await self.embedding_client.create_embedding(
                             input_text=payload[self.knowledge_source.payload_keys.semantic_content_key],
                             model=self.settings.embedding_model
                         ),
-                        self.knowledge_source.sparse_vector_name: models.Document(
+                        sparse_vector_name: models.Document(
                             text=payload[self.knowledge_source.payload_keys.lexical_content_key],
                             model="Qdrant/bm25",
                         ),
@@ -212,24 +219,24 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         }
 
 
-    def _build_ticket_content(self, ticket: Ticket) -> str:
+    def _build_lexical_content(self, ticket: Ticket) -> str:
         lines :list[str] = []
-        lines.append(f"Ticket: {ticket.ticket_title}")
+        lines.append(f"Ticket: {ticket.title}")
         for article in ticket.articles:
-                article_body_cleaned = self._clean_text(article.article_body)
-                if article.article_from:
-                    lines.append(f" - Mensaje de: {article.article_from}")
-                if article.article_to:
-                    lines.append(f" - Para: {article.article_to}")
-                if article.article_subject:
-                    lines.append(f" - Tema: {article.article_subject}")
+                article_body_cleaned = self._clean_text(article.body)
+                if article.from_email:
+                    lines.append(f" - Mensaje de: {article.from_email}")
+                if article.to_email:
+                    lines.append(f" - Para: {article.to_email}")
+                if article.subject:
+                    lines.append(f" - Tema: {article.subject}")
                 if article_body_cleaned:
                     lines.append(f" - Contenido: {article_body_cleaned}")
                 lines.append("")
         return "\n".join(lines)    
     
 
-    async def _build_ticket_summarize_content(self, content: str):
+    async def _build_semantic_content(self, content: str):
         result: ChatResult = await self.agent_service.complete_chat(
             model="Summarizer",
             messages=[

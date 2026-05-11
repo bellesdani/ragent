@@ -64,9 +64,9 @@ class KnowledgeSourceCatalog():
                 dense_vector_name="dense_vector",
                 sparse_vector_name="sparse_vector",
                 payload_keys=PayloadKeys(
-                    metadata_key="metadata",
-                    lexical_content_key="content",
-                    semantic_content_key="summarized_content",
+                    metadata_key="ticket",
+                    lexical_content_key="lexical_content",
+                    semantic_content_key="semantic_content",
                 )
             ),
         }
