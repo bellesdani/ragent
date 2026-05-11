@@ -156,7 +156,7 @@ def register_ip_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         qdrant_filter = Filter(
             must=[
                 FieldCondition(
-                    key="device.ips",
+                    key="device.ip_addressess",
                     match=MatchAny(any=valid_ips)
                 )
             ]
