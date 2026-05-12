@@ -40,5 +40,5 @@ class KnowledgeSourceIngestorFactory:
                 knowledge_source=definition,
             )
         elif definition.id == "manuals":
-            raise NotImplementedError("Todavía no se ha implementado el ingestor de empleados")
+            raise NotImplementedError("Todavía no se ha implementado el ingestor de manuales")
         raise ValueError(f"{definition.id} no tiene un modelo de ingesta definido")

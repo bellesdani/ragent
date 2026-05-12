@@ -18,7 +18,7 @@ from app.core.agent.tools import (
 class AgentFactory:
     """
     Esta factoría construye agentes a partir de una definición. Utiliza:
-     - Las variables cargadas (Settings) para definir los proveedorees y modelos.
+     - Las variables cargadas (Settings) para definir los proveedores y modelos.
 
     Funciones públicas:
      - Construir un agente ejecutable (build).

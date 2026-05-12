@@ -35,11 +35,19 @@ Las fuentes se definen en `app/core/knowledge_source/catalog.py`. El catálogo e
 La parte de fuentes de conocimiento se organiza así:
 
 - `KnowledgeSourceCatalog`: lista y resuelve las fuentes disponibles.
-- `KnowledgeSourceRetriever`: recupera contexto relevante para las herramientas de los agentes.
+- `KnowledgeSourceRetrievalService`: recupera contexto relevante para las herramientas de los agentes.
 - `KnowledgeSourceService`: coordina las operaciones públicas sobre fuentes de conocimiento.
 - `KnowledgeSourceIngestorFactory`: selecciona el servicio de ingesta adecuado cuando una fuente lo necesita.
 
-La API incluye rutas para listar fuentes, crear una fuente y añadir datos. La documentación interactiva de FastAPI muestra los endpoints y esquemas actuales.
+Las fuentes configuradas actualmente son `devices`, `employees`, `manuals` y `tickets`. Las fuentes `devices`, `employees` y `tickets` tienen ingestor para crear la colección y añadir datos; `manuals` está disponible como fuente semántica si la colección ya existe.
+
+La API incluye estas rutas principales:
+
+- `GET /knowledge-source`: lista las fuentes disponibles.
+- `POST /knowledge-source/{knowledge_source_id}`: crea la colección de una fuente con ingestor.
+- `POST /knowledge-source/{knowledge_source_id}/points`: añade o actualiza datos de una fuente con ingestor.
+
+La documentación interactiva de FastAPI muestra los endpoints y esquemas actuales.
 
 ## Configuración
 

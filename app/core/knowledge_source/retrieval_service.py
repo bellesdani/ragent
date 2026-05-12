@@ -13,7 +13,7 @@ class KnowledgeSourceRetrievalService:
     """
     Este servicio busca contexto en las fuentes de conocimiento. Utiliza:
      - Las variables cargadas (Settings)
-     - El cliente de embeddings (EmbeddingClient)
+     - El servicio de embeddings (EmbeddingService)
      - El cliente de Qdrant (AsyncQdrantClient)
      - El catálogo de fuentes de conocimiento (KnowledgeSourceCatalog)
 

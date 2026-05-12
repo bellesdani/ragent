@@ -5,7 +5,7 @@ from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Retrie
 
 class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
     """
-    Esta clase recupera documentos mediante busqueda semántica.
+    Esta clase recupera documentos mediante búsqueda semántica.
     """
 
     async def retrieve(

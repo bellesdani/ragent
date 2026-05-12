@@ -19,7 +19,7 @@ class AgentService:
      - El catálogo de agentes (AgentCatalog)
      - El servicio de prompts (PromptService)
      - La factoría de agentes para construirlos (AgentFactory)
-     - El servicio de búsqueda de Qdrant (QdrantRetriever)
+     - El servicio de recuperación de fuentes de conocimiento (KnowledgeSourceRetrievalService)
     
     Funciones públicas:
      - Listar los agentes disponibles (list_agents).

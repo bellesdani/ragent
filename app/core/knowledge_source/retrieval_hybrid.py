@@ -6,7 +6,7 @@ from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Retrie
 
 class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
     """
-    Esta clase recupera documentos mediante busqueda híbrida.
+    Esta clase recupera documentos mediante búsqueda híbrida.
      - Los vectores densos son los embeddings de representaciones semánticas.
      - Los vectores dispersos son las representaciones léxicas.
     """

@@ -11,8 +11,8 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
      - La configuración base de ingesta (KnowledgeSourceIngestor)
 
     Funciones públicas:
-     - Crear la fuente de conocimiento de tickets (create_knowledge_source).
-     - Añadir datos de tickets a la fuente de conocimiento (upsert_knowledge_source_data).
+     - Crear la fuente de conocimiento de dispositivos (create_knowledge_source).
+     - Añadir datos de dispositivos a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
     def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition) -> None:

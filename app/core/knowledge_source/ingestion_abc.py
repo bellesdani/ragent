@@ -9,7 +9,8 @@ class KnowledgeSourceIngestor(ABC):
     """
     Esta clase define la interfaz base para ingestar fuentes de conocimiento. Utiliza:
      - Las variables cargadas (Settings)
-     - El servicio de agentes (AgentService), ya que algún proceso de ingesta puede requerir la ayuda de agentes.
+     - El servicio de embeddings (EmbeddingService)
+     - El cliente de Qdrant (AsyncQdrantClient)
      - La definición de la fuente de conocimiento (KnowledgeSourceDefinition)
 
     Funciones públicas:

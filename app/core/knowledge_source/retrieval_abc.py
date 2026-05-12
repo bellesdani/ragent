@@ -11,10 +11,10 @@ class KnowledgeSourceRetrieval(ABC):
     """
     Esta clase define la interfaz base para recuperar documentos de una fuente de conocimiento. Utiliza:
      - Las variables cargadas (Settings)
-     - El cliente de embeddings (EmbeddingClient)
+     - El servicio de embeddings (EmbeddingService)
      - El cliente de Qdrant (AsyncQdrantClient)
 
-    Funciones publicas:
+    Funciones públicas:
      - Recuperar documentos relevantes para una consulta (retrieve).
     """
 
