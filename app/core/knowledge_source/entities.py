@@ -35,6 +35,7 @@ class KnowledgeSourceDefinition:
     retrieval_type: Literal["semantic", "lexical", "hybrid"]
 
 
+@dataclass(frozen=True)
 class TicketArticleRow(BaseModel):
     ticket_id: int
     ticket_group_id: int
@@ -67,6 +68,7 @@ class TicketArticleRow(BaseModel):
     article_creator_email: str | None = None
 
 
+@dataclass(frozen=True)
 class TicketArticle(BaseModel):
     id: int
     from_email: str | None = None
@@ -82,6 +84,7 @@ class TicketArticle(BaseModel):
     creator_email: str | None = None
 
 
+@dataclass(frozen=True)
 class Ticket(BaseModel):
     id: int
     group_id: int
@@ -103,6 +106,7 @@ class Ticket(BaseModel):
     articles: list[TicketArticle]
 
 
+@dataclass(frozen=True)
 class Device(BaseModel):
     id: int
     name: str | None = None
@@ -132,11 +136,13 @@ class Device(BaseModel):
     created_at: str | None = None
 
 
+@dataclass(frozen=True)
 class Phone(BaseModel):
     number: str | None = None
     extension: str | None = None
 
 
+@dataclass(frozen=True)
 class Employee(BaseModel):
     id: int
     first_name: str | None = None
@@ -148,3 +154,37 @@ class Employee(BaseModel):
     department: str | None = None
     emails: list[str] = Field(default_factory=list)
     phones: list[Phone] = Field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class HtmlManualImage:
+    id: str
+    mime_type: str | None
+    size_bytes: int
+    data_url: str | None = None
+    alt: str | None = None
+    source: str | None = None
+    skipped_reason: str | None = None
+
+
+@dataclass(frozen=True)
+class HtmlManualEvent:
+    event_type: str
+    text: str | None = None
+    image: HtmlManualImage | None = None
+
+
+@dataclass(frozen=True)
+class HtmlManualChunk:
+    index: int
+    chunk_type: str
+    title: str
+    content: str
+    image: HtmlManualImage | None = None
+
+
+@dataclass(frozen=True)
+class HtmlManualDocument:
+    filename: str
+    title: str
+    chunks: list[HtmlManualChunk]

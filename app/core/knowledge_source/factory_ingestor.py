@@ -5,6 +5,7 @@ from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_devices import DevicesKnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_tickets import TicketsKnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_employees import EmployeesKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion_html_manuals import HtmlManualsKnowledgeSourceIngestor
 
 
 class KnowledgeSourceIngestorFactory:
@@ -40,5 +41,8 @@ class KnowledgeSourceIngestorFactory:
                 knowledge_source=definition,
             )
         elif definition.id == "manuals":
-            raise NotImplementedError("Todavía no se ha implementado el ingestor de manuales")
+            return HtmlManualsKnowledgeSourceIngestor(
+                settings=self.settings,
+                knowledge_source=definition,
+            )
         raise ValueError(f"{definition.id} no tiene un modelo de ingesta definido")

@@ -45,13 +45,13 @@ class KnowledgeSourceCatalog():
                 id="manuals",
                 name="Manuals",
                 description="Información sobre manuales de software y operativas habituales dentro de la empresa.",
-                retrieval_type="semantic",
+                retrieval_type="hybrid",
                 collection_name="manuals",
-                dense_vector_name=None,
-                sparse_vector_name=None,
+                dense_vector_name="dense_vector",
+                sparse_vector_name="sparse_vector",
                 payload_keys=PayloadKeys(
                     metadata_key="metadata",
-                    lexical_content_key=None,
+                    lexical_content_key="content",
                     semantic_content_key="content",
                 )
             ),

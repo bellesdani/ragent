@@ -1,7 +1,7 @@
 from typing import List
-from fastapi import APIRouter, Depends, Request
 from app.core.knowledge_source.service import KnowledgeSourceService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 
 router = APIRouter(tags=["Knowledge Sources"])
@@ -30,13 +30,33 @@ async def create_knowledge_source(
     }
 
 
-@router.post("/knowledge-source/{knowledge_source_id}/points")
-async def upsert_knowledge_source_data(
+@router.post("/knowledge-source/{knowledge_source_id}/points/from-json")
+async def upsert_points_in_knowledge_source_from_json(
     knowledge_source_id: str,
     data: list[dict[str, object]],
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service),
 ) -> dict[str, object]:
     result = await knowledge_service.upsert_knowledge_source_data(knowledge_source_id, data)
+    return {
+        "status": "ok",
+        **result,
+    }
+
+
+@router.post("/knowledge-source/{knowledge_source_id}/points/from-html")
+async def upsert_points_in_knowledge_source_from_html(
+    knowledge_source_id: str,
+    file: UploadFile = File(...),
+    knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service),
+) -> dict[str, object]:
+    result = await knowledge_service.upsert_knowledge_source_data(
+        knowledge_source_id=knowledge_source_id,
+        data={
+            "filename": file.filename or "manual.html",
+            "content": await file.read(),
+            "content_type": file.content_type,
+        }
+    )
     return {
         "status": "ok",
         **result,
