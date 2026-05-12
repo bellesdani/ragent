@@ -2,7 +2,7 @@ import re
 
 from html import unescape
 from typing import Optional
-from app.core.html_manual_parser import HtmlManualParser
+from app.core.document_processing.html_manual_parser import HtmlManualParser
 from app.core.knowledge_source.entities import HtmlManualChunk, HtmlManualDocument, HtmlManualEvent
 
 
