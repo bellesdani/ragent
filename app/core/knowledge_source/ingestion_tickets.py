@@ -163,8 +163,9 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
         # En cuarto lugar, preparamos el payload
         # Payload: 
-        #  - Content: Text to generate embeddings and item to be used for semantic search  
-        #  - Metadata: Text to use for search and payload metadata
+        #  - Semantic_content: Texto para generar los embeddings de búsqueda semántica
+        #  - Lexical_content: Texto para procesar con bm25 para la búsqueda léxica  
+        #  - Metadata: Información relativa al ticket, como id, usuarios, etc
         payloads = []
         for ticket in tickets.values():
             metadata = self._build_ticket_metadata(ticket)
