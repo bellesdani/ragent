@@ -8,7 +8,12 @@ from app.core.knowledge_source.entities import HtmlManualChunk, HtmlManualDocume
 
 class HtmlManualConverter:
     """
-    Este servicio encapsula la conversión de manuales HTML a bloques listos para ingesta.
+    Este servicio encapsula la conversión de manuales HTML a documentos listos para ingesta. Utiliza:
+     - El parser de manuales HTML (HtmlManualParser)
+     - Los modelos de eventos y bloques de manuales (HtmlManualEvent, HtmlManualChunk, HtmlManualDocument)
+
+    Funciones públicas:
+     - Convertir un fichero HTML en un documento estructurado (convert).
     """
 
     def __init__(

@@ -6,11 +6,12 @@ from app.config import Settings
 
 class EmbeddingService:
     """
-    Este servicio centraliza la generación de embeddings.
+    Este servicio centraliza la generacion de embeddings. Utiliza:
      - Las variables cargadas (Settings)
 
     Funciones públicas:
      - Generar el embedding de un texto (create_embedding).
+     - Generar el embedding de un texto con contexto visual opcional (create_multimodal_embedding).
     """
     def __init__(self, settings: Settings) -> None:
         headers = {"Content-Type": "application/json"}

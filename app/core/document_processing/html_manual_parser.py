@@ -9,6 +9,15 @@ from app.core.knowledge_source.entities import HtmlManualEvent, HtmlManualImage
 
 
 class HtmlManualParser(HTMLParser):
+    """
+    Este parser extrae texto e imágenes de un manual HTML. Utiliza:
+     - El parser HTML estandar de Python (HTMLParser)
+     - Los modelos de eventos e imágenes de manuales (HtmlManualEvent, HtmlManualImage)
+
+    Funciones públicas:
+     - Procesar el HTML acumulando eventos de texto e imagen (feed, close).
+    """
+
     block_tags = {
         "article", "section", "div", "p", "br", "li", "ul", "ol",
         "table", "tbody", "thead", "tr", "td", "th",
@@ -109,7 +118,7 @@ class HtmlManualParser(HTMLParser):
                 mime_type=None,
                 size_bytes=0,
                 alt=alt or None,
-                skipped_reason="La imagen embebida no tiene un formato data URL válido",
+                skipped_reason="La imagen embebida no tiene un formato data URL valido",
             )
 
         mime_type = header[5:].split(";")[0].lower()
@@ -120,7 +129,7 @@ class HtmlManualParser(HTMLParser):
                 mime_type=mime_type,
                 size_bytes=0,
                 alt=alt or None,
-                skipped_reason="La imagen embebida no está codificada en base64",
+                skipped_reason="La imagen embebida no esta codificada en base64",
             )
 
         encoded = re.sub(r"\s+", "", encoded)
@@ -143,7 +152,7 @@ class HtmlManualParser(HTMLParser):
                 mime_type=mime_type,
                 size_bytes=len(image_bytes),
                 alt=alt or None,
-                skipped_reason="La imagen supera el tamaño máximo permitido",
+                skipped_reason="La imagen supera el tamano maximo permitido",
             )
 
         return HtmlManualImage(
