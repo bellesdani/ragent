@@ -2,7 +2,7 @@ from typing import Any, List
 from dataclasses import asdict
 from pydantic import ValidationError
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter, Depends, File, Request, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Request, UploadFile
 from app.core.knowledge_source.service import KnowledgeSourceService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.api.schemas.knowledge import (
@@ -65,7 +65,7 @@ async def create_knowledge_source(
 @router.post("/knowledge-source/{knowledge_source_id}/points/from-json", response_model=KnowledgeSourceUpsertResponse)
 async def upsert_points_in_knowledge_source_from_json(
     knowledge_source_id: str,
-    data: object | None = None,
+    data: object | None = Body(default=None),
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service),
 ) -> KnowledgeSourceUpsertResponse | JSONResponse:
     try:
