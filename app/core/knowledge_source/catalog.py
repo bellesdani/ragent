@@ -81,5 +81,5 @@ class KnowledgeSourceCatalog():
     def get_knowledge_source(self, knowledge_source_id: str) -> KnowledgeSourceDefinition:
         if knowledge_source_id in self._knowledge_sources:
             return self._knowledge_sources[knowledge_source_id]
-        raise ValueError(f"Fuente de conocimiento '{knowledge_source_id}' desconocida. Agentes disponibles: {', '.join(sorted(self._knowledge_sources))}")
+        raise ValueError(f"Fuente de conocimiento '{knowledge_source_id}' desconocida. Fuentes disponibles: {', '.join(sorted(self._knowledge_sources))}")
     
