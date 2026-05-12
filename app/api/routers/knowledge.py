@@ -150,12 +150,7 @@ def _build_knowledge_error_response(exc: Exception) -> JSONResponse:
     )
 
 
-def _build_error_response(
-    status_code: int,
-    code: str,
-    message: str,
-    details: Any | None = None,
-) -> JSONResponse:
+def _build_error_response(status_code: int, code: str, message: str, details: Any | None = None) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
         content=KnowledgeSourceErrorResponse(
