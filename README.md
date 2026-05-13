@@ -91,3 +91,42 @@ Puertos por defecto:
 - Open WebUI local: `http://localhost:8080`
 
 Cuando Open WebUI se ejecuta desde `docker-compose.local.yml`, puede configurarse contra RAGent usando la URL interna `http://ragent:8000/v1`. Desde fuera de Docker, la URL equivalente es `http://localhost:8000/v1`.
+
+## Evaluaciones
+
+Las evaluaciones se ejecutan en el host local, no dentro del contenedor de `ragent`. El runner en `evals/` llama por HTTP al servicio publicado en `localhost`.
+
+Para ejecutarlas desde cero en otro equipo necesitas:
+
+- tener Docker y Docker Compose disponibles,
+- crear un entorno virtual local para el runner,
+- instalar `requirements-dev.txt` en ese entorno,
+- levantar `ragent` con Docker Compose,
+- y ejecutar `python -m evals.run` desde el host.
+
+Ejemplo completo con `docker-compose.local.yml`:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install --upgrade pip
+.\.venv\Scripts\python -m pip install -r requirements-dev.txt
+docker compose -f docker-compose.local.yml up --build -d
+.\.venv\Scripts\python -m evals.run --base-url http://localhost:8000
+```
+
+Ejemplo completo con `docker-compose.yml`:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install --upgrade pip
+.\.venv\Scripts\python -m pip install -r requirements-dev.txt
+docker compose -f docker-compose.yml up --build -d
+.\.venv\Scripts\python -m evals.run --base-url http://localhost:8001
+```
+
+Si ya tienes `.venv` preparada y no necesitas reconstruir la imagen, puedes reutilizar ambas cosas:
+
+```powershell
+docker compose -f docker-compose.local.yml up -d
+.\.venv\Scripts\python -m evals.run --base-url http://localhost:8000
+```

@@ -1,0 +1,47 @@
+cases:
+  - agent: Quipi
+    conversation:
+      - question: "Hola"
+        expected:
+          - "hola"
+      - question: "¿Cuál es la extensión de Miguel Pardo?"
+        expected:
+          - "3032"
+      - question: "¿Y en qué departamento trabaja?"
+        expected:
+          - "Informática"
+
+  - agent: Quipi
+    conversation:
+      - question: "Dame el contacto de todos los compañeros de IT"
+        expected:
+          - "5476"
+          - "3026"
+          - "3032"
+          - "3046"
+          - "3028"
+          - "3029"
+          - "3015"
+          - "olivia@equipeceramicas.com"
+          - "imariscal@equipeceramicas.com"
+          - "mpardo@equipeceramicas.com"
+          - "jporcar@equipeceramicas.com"
+          - "smiranzo@equipeceramicas.com"
+          - "pau@equipeceramicas.com"
+          - "ablasco@equipeceramicas.com"
+          - "dbelles@equipeceramicas.com"
+          - "mgrau@equipeceramicas.com"
+          - "ilabarga@equipeceramicas.com"
+
+  - agent: Quipi
+    conversation:
+      - question: "Dame la información del dispositivo con IP 192.168.1.17"
+        expected:
+          - "SRVAD"
+
+  - agent: Quipi
+    conversation:
+      - question: "Dame la información de los equipos con sn: 5CD5396VSL y C2411N0018749"
+        expected:
+          - "RENNES"
+          - "SHANGHAI"
