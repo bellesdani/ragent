@@ -28,7 +28,7 @@ services:
       start_period: 10s
     networks:
       - proxy
-      
+
   # Qdrant (Vector storage)
   qdrant:
     image: qdrant/qdrant:v1.17
@@ -46,3 +46,8 @@ services:
       - ./volumes/qdrant:/qdrant/storage
     networks:
       - proxy
+
+# Proxy network exposed by traefik in the host
+networks:
+  proxy:
+    external: true
