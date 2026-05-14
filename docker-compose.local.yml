@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ragent
+    restart: no
     environment:
       CHAT_API_KEY: ${CHAT_API_KEY:-}
       CHAT_BASE_URL: ${CHAT_BASE_URL}
@@ -19,13 +20,28 @@ services:
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
     ports:
       - "8000:8000"
-    restart: no
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  # Qdrant (Vector storage)
+  qdrant:
+    image: qdrant/qdrant:v1.17
+    container_name: qdrant
+    restart: no
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
+    expose:
+      - "6333"
+      - "6334"
+      - "6335"
+    volumes:
+      - ./volumes/qdrant:/qdrant/storage
+    ports:
+      - "6333:6333"
 
   # Open-WebUI: GUI service to chat with LLMs
   open-webui:

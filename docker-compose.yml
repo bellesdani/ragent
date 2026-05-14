@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ragent
+    restart: always
     environment:
       CHAT_API_KEY: ${CHAT_API_KEY:-}
       CHAT_BASE_URL: ${CHAT_BASE_URL}
@@ -17,12 +18,31 @@ services:
       LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-800}
       QDRANT_URL: ${QDRANT_URL}
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
-    ports:
+    ports: # Exposed to be accessed outside de proxy
       - "8001:8000"
-    restart: no
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+    networks:
+      - proxy
+      
+  # Qdrant (Vector storage)
+  qdrant:
+    image: qdrant/qdrant:v1.17
+    container_name: qdrant
+    restart: always
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
+    expose:
+      - "6333"
+      - "6334"
+      - "6335"
+    ports: # Exposed to be accessed outside de proxy
+      - "6333:6333"
+    volumes:
+      - ./volumes/qdrant:/qdrant/storage
+    networks:
+      - proxy

@@ -111,10 +111,3 @@ python -m pip install -r requirements-eval.txt
 docker compose -f docker-compose.local.yml up --build -d
 python -m evals.run --base-url http://localhost:8000
 ```
-
-Si ya tienes `.venv` preparada y no necesitas reconstruir la imagen, puedes reutilizar ambas cosas:
-
-```bash
-docker compose -f docker-compose.local.yml up -d
-python -m evals.run --base-url http://localhost:8000
-```
