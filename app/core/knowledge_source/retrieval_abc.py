@@ -3,7 +3,7 @@ from app.config import Settings
 from abc import ABC, abstractmethod
 from qdrant_client.models import Filter
 from qdrant_client import AsyncQdrantClient
-from app.core.embeddings import EmbeddingService
+from app.core.utils.embeddings import EmbeddingService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievalDocument
 
 

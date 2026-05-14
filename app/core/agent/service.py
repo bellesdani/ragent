@@ -1,11 +1,11 @@
 from app.config import Settings
 from pydantic_ai.usage import UsageLimits
-from app.core.prompts import PromptService
+from app.core.utils.prompts import PromptService
 from pydantic_ai.settings import ModelSettings
 from app.core.agent.catalog import AgentCatalog
 from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
-from app.core.embeddings import EmbeddingService
+from app.core.utils.embeddings import EmbeddingService
 from app.core.agent.entities import AgentDefinition, AgentDeps
 from app.core.chat.entities import ChatCompletionUsage, ChatMessage, ChatResult
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart

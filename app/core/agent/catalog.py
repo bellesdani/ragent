@@ -1,5 +1,5 @@
 from app.config import Settings
-from app.core.prompts import PromptService
+from app.core.utils.prompts import PromptService
 from app.core.agent.entities import AgentDefinition
 
 
