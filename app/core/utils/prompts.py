@@ -11,7 +11,7 @@ class PromptService:
     """
 
     def __init__(self) -> None:
-        self.base_path = Path(__file__).resolve().parent / "prompts"
+        self.base_path = Path(__file__).resolve().parent.parent / "prompts"
 
 
     @lru_cache(maxsize=None)
