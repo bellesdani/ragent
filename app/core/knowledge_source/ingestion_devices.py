@@ -64,7 +64,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.name",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=False,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
             ),
@@ -74,7 +74,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.type",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=False,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
             ),
@@ -91,7 +91,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.manufacturer",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=False,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
             ),
@@ -101,7 +101,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.model",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=False,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
             ),
@@ -132,7 +132,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.location",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=False,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
             ),
@@ -142,7 +142,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.owner",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=False,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
             ),
