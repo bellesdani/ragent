@@ -113,7 +113,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         #  - device: Json del dispositivo con el que podemos aplicar filtros y ver la información claramente 
         payloads = []
         for device in devices:
-            metadata = self._build_device_metadata(device)
+            metadata = device.model_dump(mode="json")
             lexical_text = self._build_lexical_text(device)
             semantic_text = self._build_semantical_text(device)
 
@@ -165,23 +165,16 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         }
 
 
-    def _build_device_metadata(self, device: Device):
-        device_dict = device.model_dump(mode="json")
-        device_dict['ip_addressess'] = device_dict["ips"]
-        del(device_dict['ips'])
-        return device_dict
-
-
     def _build_lexical_text(self, device: Device) -> str:
         lines = []
         if device.name:
             lines.append(f"{device.name}")
         if device.hostname:
             lines.append(f"{device.hostname}")
-        if device.type:
-            lines.append(f"{device.type}")
-        if device.os:
-            lines.append(f"{device.os}")
+        if device.device_type_id:
+            lines.append(f"{device.device_type_id}")
+        if device.operating_system_id:
+            lines.append(f"{device.operating_system_id}")
         if device.architecture:
             lines.append(f"{device.architecture}")
         if device.manufacturer:
@@ -190,16 +183,18 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(f"{device.model}")
         if device.serial_number:
             lines.append(f"{device.serial_number}")
-        if device.owner:
-            lines.append(f"{device.owner}")
-        if device.user:
-            lines.append(f"{device.user}")
-        if device.ips:
-            lines.append(f"{" ".join(map(str, device.ips))}")
-        if device.vlans:
-            lines.append(f"{" ".join(map(str, device.vlans))}")
+        if device.employee_id:
+            lines.append(f"{device.employee_id}")
+        if device.user_logged:
+            lines.append(f"{device.user_logged}")
+        if device.ip_addresses:
+            lines.append(f"{" ".join(map(str, device.ip_addresses))}")
         if device.mac_addresses:
             lines.append(f"{" ".join(map(str, device.mac_addresses))}")
+        if device.vlans:
+            lines.append(f"{" ".join(map(str, device.vlans))}")
+        if device.cpus:
+            lines.append(f"{" ".join(map(str, device.cpus))}")
         if device.comments:
             lines.append(f"{device.comments}")
         return "\n".join(lines)
@@ -211,20 +206,20 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(f"Dispositivo: {device.name}")
         if device.hostname:
             lines.append(f"Nombre del host: {device.hostname}")
-        if device.type:
-            lines.append(f"Tipo: {device.type}")
-        if device.os:
-            lines.append(f"Sistema operativo: {device.os}")
+        if device.device_type_id:
+            lines.append(f"Tipo: {device.device_type_id}")
+        if device.operating_system_id:
+            lines.append(f"Sistema operativo: {device.operating_system_id}")
         if device.architecture:
             lines.append(f"Arquitectura: {device.architecture}")
         if device.manufacturer:
             lines.append(f"Fabricante: {device.manufacturer}")
         if device.model:
             lines.append(f"Modelo: {device.model}")
-        if device.owner:
-            lines.append(f"Propietario: {device.owner}")
-        if device.user:
-            lines.append(f"Usuario: {device.user}")
+        if device.employee_id:
+            lines.append(f"Propietario: {device.employee_id}")
+        if device.user_logged:
+            lines.append(f"Usuario: {device.user_logged}")
         if device.comments:
             lines.append(f"Información adicional: {device.comments}")
         if device.vlans and len(device.vlans) > 0:

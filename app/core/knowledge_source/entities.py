@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal
 from dataclasses import dataclass
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class RetrievalDocument(BaseModel):
@@ -106,34 +106,55 @@ class Ticket(BaseModel):
     articles: list[TicketArticle]
 
 
-@dataclass(frozen=True)
 class Device(BaseModel):
     id: int
     name: str | None = None
-    type: str | None = None
-    os: str | None = None
-    os_version: str | None = None
-    os_serial: str | None = None
+    device_type_id: str | None = None
+    operating_system_id: str | None = None
+    operating_system_version: str | None = None
+    operating_system_serial_number: str | None = None
     architecture: str | None = None
     hostname: str | None = None
-    current_ip: str | None = None
-    ips: list[str] = Field(default_factory=list)
-    mac_addresses: list[str] = Field(default_factory=list)
-    vlans: list[str] = Field(default_factory=list)
+    last_seen_ip: str | None = None
     serial_number: str | None = None
     manufacturer: str | None = None
     model: str | None = None
     description: str | None = None
     comments: str | None = None
-    location: str | None = None
-    printer_model: str | None = None
-    owner: str | None = None
-    ram_gb: float | None = None
-    disk_gb: float | None = None
-    cpu: list[str] = Field(default_factory=list)
-    user: str | None = None
-    last_reboot: str | None = None
-    created_at: str | None = None
+    location_id: str | None = None
+    printer_model_id: str | None = None
+    employee_id: str | None = None
+    ram: float | None = None
+    hdd_size: float | None = None
+    user_logged: str | None = None
+    uptime: str | None = None
+    date_creation: str | None = None
+
+    ip_addresses: list[str] = Field(default_factory=list)
+    mac_addresses: list[str] = Field(default_factory=list)
+    cpus: list[str] = Field(default_factory=list)
+    vlans: list[str] = Field(default_factory=list)
+
+    @staticmethod
+    def _collect_numbered_fields(data: dict[str, Any], field_prefix: str, amount: int) -> list[str]:
+        return [
+            value
+            for index in range(1, amount + 1)
+            if (value := data.get(f"{field_prefix}_{index}")) not in (None, "")
+        ]
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_numbered_fields(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        data = data.copy()
+        data.setdefault("ip_addresses", cls._collect_numbered_fields(data, "ip", 4))
+        data.setdefault("mac_addresses", cls._collect_numbered_fields(data, "mac", 4))
+        data.setdefault("cpus", cls._collect_numbered_fields(data, "processor", 2))
+        data.setdefault("vlans", cls._collect_numbered_fields(data, "vlan_id", 4))
+        return data
 
 
 @dataclass(frozen=True)
