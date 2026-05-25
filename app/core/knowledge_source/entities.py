@@ -125,10 +125,10 @@ class Device(BaseModel):
     comments: str | None = Field(default=None) 
     location: str | None = Field(default=None, validation_alias=AliasChoices("location_id", "location"))
     printer_model: str | None = Field(default=None, validation_alias=AliasChoices("printer_model_id", "printer_model"))
-    employee: str | None = Field(default=None, validation_alias=AliasChoices("employee_id", "employee"))
+    owner: str | None = Field(default=None, validation_alias=AliasChoices("employee_id", "employee", "owner"))
     ram: float | None = Field(default=None) 
     hdd_size: float | None = Field(default=None) 
-    user_logged: str | None = Field(default=None) 
+    user: str | None = Field(default=None, validation_alias=AliasChoices("user_logged", "user")) 
     uptime: str | None = Field(default=None) 
     date_creation: str | None = Field(default=None) 
 

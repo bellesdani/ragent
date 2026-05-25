@@ -129,7 +129,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.location_id",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.location",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=False,
@@ -139,7 +139,17 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.user_logged",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.owner",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=False,
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.user",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
@@ -225,10 +235,10 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(device.name)
         if device.hostname:
             lines.append(device.hostname)
-        if device.device_type_id:
-            lines.append(device.device_type_id)
-        if device.operating_system_id:
-            lines.append(device.operating_system_id)
+        if device.type:
+            lines.append(device.type)
+        if device.operating_system:
+            lines.append(device.operating_system)
         if device.architecture:
             lines.append(device.architecture)
         if device.manufacturer:
@@ -237,10 +247,10 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(device.model)
         if device.serial_number:
             lines.append(device.serial_number)
-        if device.employee_id:
-            lines.append(device.employee_id)
-        if device.user_logged:
-            lines.append(device.user_logged)
+        if device.owner:
+            lines.append(device.owner)
+        if device.user:
+            lines.append(device.user)
         if device.ip_addresses:
             lines.append(" ".join(map(str, device.ip_addresses)))
         if device.mac_addresses:
@@ -260,20 +270,20 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             lines.append(f"Dispositivo: {device.name}")
         if device.hostname:
             lines.append(f"Nombre del host: {device.hostname}")
-        if device.device_type_id:
-            lines.append(f"Tipo: {device.device_type_id}")
-        if device.operating_system_id:
-            lines.append(f"Sistema operativo: {device.operating_system_id}")
+        if device.type:
+            lines.append(f"Tipo: {device.type}")
+        if device.operating_system:
+            lines.append(f"Sistema operativo: {device.operating_system}")
         if device.architecture:
             lines.append(f"Arquitectura: {device.architecture}")
         if device.manufacturer:
             lines.append(f"Fabricante: {device.manufacturer}")
         if device.model:
             lines.append(f"Modelo: {device.model}")
-        if device.employee_id:
-            lines.append(f"Propietario: {device.employee_id}")
-        if device.user_logged:
-            lines.append(f"Usuario: {device.user_logged}")
+        if device.owner:
+            lines.append(f"Propietario: {device.owner}")
+        if device.user:
+            lines.append(f"Usuario: {device.user}")
         if device.comments:
             lines.append(f"Información adicional: {device.comments}")
         if device.vlans and len(device.vlans) > 0:
