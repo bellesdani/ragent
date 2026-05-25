@@ -1,7 +1,7 @@
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, ClassVar, Literal
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
 
 
 class RetrievalDocument(BaseModel):
@@ -109,28 +109,28 @@ class Ticket(BaseModel):
 class Device(BaseModel):
     UNKNOWN_VALUES: ClassVar[set[str]] = {"desconocido", "desconocida", ""}
 
-    id: int
-    name: str | None = None
-    device_type_id: str | None = None
-    operating_system_id: str | None = None
-    operating_system_version: str | None = None
-    operating_system_serial_number: str | None = None
-    architecture: str | None = None
-    hostname: str | None = None
-    last_seen_ip: str | None = None
-    serial_number: str | None = None
-    manufacturer: str | None = None
-    model: str | None = None
-    description: str | None = None
-    comments: str | None = None
-    location_id: str | None = None
-    printer_model_id: str | None = None
-    employee_id: str | None = None
-    ram: float | None = None
-    hdd_size: float | None = None
-    user_logged: str | None = None
-    uptime: str | None = None
-    date_creation: str | None = None
+    id: int 
+    name: str | None = Field(default=None) 
+    type: str | None = Field(default=None, validation_alias=AliasChoices("device_type_id", "device_type", "type"))
+    operating_system: str | None = Field(default=None, validation_alias=AliasChoices("operating_system_id", "operating_system"))
+    operating_system_version: str | None = Field(default=None) 
+    operating_system_serial_number: str | None = Field(default=None) 
+    architecture: str | None = Field(default=None) 
+    hostname: str | None = Field(default=None) 
+    last_seen_ip: str | None = Field(default=None) 
+    serial_number: str | None = Field(default=None) 
+    manufacturer: str | None = Field(default=None) 
+    model: str | None = Field(default=None) 
+    description: str | None = Field(default=None) 
+    comments: str | None = Field(default=None) 
+    location: str | None = Field(default=None, validation_alias=AliasChoices("location_id", "location"))
+    printer_model: str | None = Field(default=None, validation_alias=AliasChoices("printer_model_id", "printer_model"))
+    employee: str | None = Field(default=None, validation_alias=AliasChoices("employee_id", "employee"))
+    ram: float | None = Field(default=None) 
+    hdd_size: float | None = Field(default=None) 
+    user_logged: str | None = Field(default=None) 
+    uptime: str | None = Field(default=None) 
+    date_creation: str | None = Field(default=None) 
 
     ip_addresses: list[str] = Field(default_factory=list)
     mac_addresses: list[str] = Field(default_factory=list)
