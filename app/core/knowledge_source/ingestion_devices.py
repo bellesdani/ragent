@@ -223,7 +223,6 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         if device.comments:
             lines.append(f"Información adicional: {device.comments}")
         if device.vlans and len(device.vlans) > 0:
-            vlans = ",".join(map(str, device.vlans))
-            lines.append(f"VLANs: {vlans}")
+            lines.append(f"VLANs: {",".join(map(str, device.vlans))}")
         return ".\n".join(lines)
     
