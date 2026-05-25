@@ -115,7 +115,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ip_addressess",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ip_addresses",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
