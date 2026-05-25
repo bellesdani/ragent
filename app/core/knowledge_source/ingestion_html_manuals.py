@@ -80,7 +80,7 @@ class HtmlManualsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.filename",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=True,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=True
             )
@@ -90,7 +90,7 @@ class HtmlManualsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.title",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=True,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=True
             )

@@ -92,9 +92,9 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.department",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=True,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=True
+                phrase_matching=False
             )
         )
         await self.qdrant_client.create_payload_index(
@@ -102,9 +102,9 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.full_name",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
-                lowercase=True,
+                lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=True
+                phrase_matching=False
             )
         )
 
