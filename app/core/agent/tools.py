@@ -48,7 +48,7 @@ def _build_devices_filter(ip_addresses: list[str], mac_addresses: list[str], ser
     if ip_addresses:
         filter_conditions.append(
             FieldCondition(
-                key="device.ip_addressess",
+                key="device.ip_addresses",
                 match=MatchAny(any=ip_addresses)
             )
         )
