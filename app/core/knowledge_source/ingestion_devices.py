@@ -168,35 +168,35 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     def _build_lexical_text(self, device: Device) -> str:
         lines = []
         if device.name:
-            lines.append(f"{device.name}")
+            lines.append(device.name)
         if device.hostname:
-            lines.append(f"{device.hostname}")
+            lines.append(device.hostname)
         if device.device_type_id:
-            lines.append(f"{device.device_type_id}")
+            lines.append(device.device_type_id)
         if device.operating_system_id:
-            lines.append(f"{device.operating_system_id}")
+            lines.append(device.operating_system_id)
         if device.architecture:
-            lines.append(f"{device.architecture}")
+            lines.append(device.architecture)
         if device.manufacturer:
-            lines.append(f"{device.manufacturer}")
+            lines.append(device.manufacturer)
         if device.model:
-            lines.append(f"{device.model}")
+            lines.append(device.model)
         if device.serial_number:
-            lines.append(f"{device.serial_number}")
+            lines.append(device.serial_number)
         if device.employee_id:
-            lines.append(f"{device.employee_id}")
+            lines.append(device.employee_id)
         if device.user_logged:
-            lines.append(f"{device.user_logged}")
+            lines.append(device.user_logged)
         if device.ip_addresses:
-            lines.append(f"{" ".join(map(str, device.ip_addresses))}")
+            lines.append(" ".join(map(str, device.ip_addresses)))
         if device.mac_addresses:
-            lines.append(f"{" ".join(map(str, device.mac_addresses))}")
+            lines.append(" ".join(map(str, device.mac_addresses)))
         if device.vlans:
-            lines.append(f"{" ".join(map(str, device.vlans))}")
+            lines.append(" ".join(map(str, device.vlans)))
         if device.cpus:
-            lines.append(f"{" ".join(map(str, device.cpus))}")
+            lines.append(" ".join(map(str, device.cpus)))
         if device.comments:
-            lines.append(f"{device.comments}")
+            lines.append(device.comments)
         return "\n".join(lines)
     
 

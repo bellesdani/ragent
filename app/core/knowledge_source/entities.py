@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Any, Literal
 from dataclasses import dataclass
-from pydantic import BaseModel, Field, model_validator
+from typing import Any, ClassVar, Literal
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class RetrievalDocument(BaseModel):
@@ -107,6 +107,8 @@ class Ticket(BaseModel):
 
 
 class Device(BaseModel):
+    UNKNOWN_VALUES: ClassVar[set[str]] = {"desconocido", "desconocida"}
+
     id: int
     name: str | None = None
     device_type_id: str | None = None
@@ -135,6 +137,12 @@ class Device(BaseModel):
     cpus: list[str] = Field(default_factory=list)
     vlans: list[str] = Field(default_factory=list)
 
+    @classmethod
+    def _none_if_unknown(cls, value: Any) -> Any:
+        if isinstance(value, str) and value.strip().casefold() in cls.UNKNOWN_VALUES:
+            return None
+        return value
+
     @staticmethod
     def _collect_numbered_fields(data: dict[str, Any], field_prefix: str, amount: int) -> list[str]:
         return [
@@ -149,6 +157,11 @@ class Device(BaseModel):
         if not isinstance(data, dict):
             return data
 
+        data = {
+            key: cls._none_if_unknown(value)
+            for key, value in data.items()
+        }
+
         data = data.copy()
         data.setdefault("ip_addresses", cls._collect_numbered_fields(data, "ip", 4))
         data.setdefault("mac_addresses", cls._collect_numbered_fields(data, "mac", 4))
@@ -156,6 +169,21 @@ class Device(BaseModel):
         data.setdefault("vlans", cls._collect_numbered_fields(data, "vlan_id", 4))
         return data
 
+    @field_validator("ip_addresses", "mac_addresses", "cpus", "vlans", mode="before")
+    @classmethod
+    def normalize_lists(cls, value: Any) -> Any:
+        if value is None:
+            return []
+
+        if not isinstance(value, list):
+            return value
+
+        return [
+            item
+            for item in (cls._none_if_unknown(item) for item in value)
+            if item not in (None, "")
+        ]
+    
 
 @dataclass(frozen=True)
 class Phone(BaseModel):
