@@ -61,13 +61,50 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         # Añadimos índices para optimizar los filtros
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.hostname",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.name",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=False,
                 tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=True
-            )
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.type",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=False,
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.hostname",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.manufacturer",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=False,
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.model",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=False,
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
@@ -86,6 +123,23 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
             field_name=f"{self.knowledge_source.payload_keys.metadata_key}.mac_addresses",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.location_id",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=False,
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.user_logged",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),

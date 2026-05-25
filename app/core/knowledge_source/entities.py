@@ -107,7 +107,7 @@ class Ticket(BaseModel):
 
 
 class Device(BaseModel):
-    UNKNOWN_VALUES: ClassVar[set[str]] = {"desconocido", "desconocida"}
+    UNKNOWN_VALUES: ClassVar[set[str]] = {"desconocido", "desconocida", ""}
 
     id: int
     name: str | None = None
