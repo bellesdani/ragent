@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
 from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
@@ -217,12 +218,21 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                 )
             )
 
-        # Finalmente, insertamos los puntos Qdrant 
+        # Finalmente:
+        #  - Insertamos los puntos Qdrant en la colección
+        #  - Y actualizamos la metadata de la colección estableciendo last_collection_update
         if len(points) > 0:
             await self.qdrant_client.upsert(
                 collection_name=self.knowledge_source.collection_name,
                 points=points,
             )
+            await self.qdrant_client.update_collection(
+                collection_name=self.knowledge_source.collection_name,
+                metadata={
+                    "last_collection_update": datetime.now().strftime("%Y:%m:%d - %H:%M")
+                }
+            )
+
         return {
             "devices": len(devices),
             "points": len(points),
