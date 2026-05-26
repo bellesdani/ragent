@@ -133,13 +133,16 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             limit=10,
             query=query,
-            source_ids=["employees"],
+            source_id="employees",
             query_filter=qdrant_filter,
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
-            lines = [f"Consulta usada: {retrieval.query}"]
+            lines = []
+            lines.append(f"Consulta usada: {retrieval.query}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             if department:
                 lines.append(f"Filtro aplicado: department = {department}")
             for index, document in enumerate(retrieval.documents, start=1):
@@ -217,13 +220,16 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             limit=retrieval_limit,
             query=retrieval_query,
-            source_ids=["devices"],
+            source_id="devices",
             query_filter=qdrant_filter,
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
-            lines = [f"Consulta usada: {retrieval.query}"]
+            lines = []
+            lines.append(f"Consulta usada: {retrieval.query}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             for index, document in enumerate(retrieval.documents, start=1):
                 # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
                 #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
@@ -256,12 +262,15 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             limit=5,
             query=query,
-            source_ids=["manuals"],
+            source_id="manuals",
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
-            lines = [f"Consulta usada: {retrieval.query}"]
+            lines = []
+            lines.append(f"Consulta usada: {retrieval.query}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             for index, document in enumerate(retrieval.documents, start=1):
                 lines.append("")
                 lines.append(f"[{index}] Fuente: {document.id}")
@@ -289,12 +298,15 @@ def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval = await context.deps.retriever.retrieve(
             limit=3,
             query=query,
-            source_ids=["tickets"],
+            source_id="tickets",
         )
 
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
-            lines = [f"Consulta usada: {retrieval.query}"]
+            lines = []
+            lines.append(f"Consulta usada: {retrieval.query}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             for index, document in enumerate(retrieval.documents, start=1):
                 # Para el caso de los tickets, vamos a eliminar el histórico de artículos porque añade mucha basura
                 if "articles" in document.metadata:

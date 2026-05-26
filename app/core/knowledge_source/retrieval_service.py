@@ -43,35 +43,34 @@ class KnowledgeSourceRetrievalService:
         }
 
 
-    async def retrieve(
-            self, 
-            query: str, 
-            limit: int,
-            source_ids: list[str], 
-            query_filter: Filter | None = None
-    ) -> RetrievedContext:
+    async def retrieve(self, query: str, limit: int, source_id: str, query_filter: Filter | None = None) -> RetrievedContext:
+        # Validamos la fuente de conocimiento sobre la que se desea hacer la búsqueda
+        source = self.knowledge_source_catalog.get_knowledge_source(source_id)
+        retriever = self.retrievers.get(source.retrieval_type)
+        if retriever is None:
+            raise ValueError(f"La fuente de conocimiento '{source.id}' tiene un tipo de búsqueda no soportado: {source.retrieval_type}")
+        
         # Limpieza de la query básica
-        rewritten_query = self._rewrite_query(query)
+        cleaned_query = query.strip()
 
-        # En cada fuente de source_ids, usamos la estrategia configurada
+        # Obtenemos la fecha de la última actualización de la colección de su metadata para dar más contexto
+        last_collection_update = None
+        collection_info = await self.qdrant_client.get_collection(collection_name=source.collection_name)
+        if collection_info.config.metadata:
+            last_collection_update = collection_info.config.metadata.get('last_collection_update')
+
+        # Para la source_id usamos la estrategia de búsqueda configurada en el catálogo
         #  y generamos para cada punto obtenido, un documento: un punto referenciable con su payload y metadata
-        documents = []
-        for source_id in source_ids:
-            source = self.knowledge_source_catalog.get_knowledge_source(source_id)
-            retriever = self.retrievers.get(source.retrieval_type)
-            if retriever is None:
-                raise ValueError(f"La fuente de conocimiento '{source.id}' tiene un tipo de búsqueda no soportado: {source.retrieval_type}")
-            documents.extend(
-                await retriever.retrieve(
-                    query=rewritten_query,
-                    source=source,
-                    limit=limit,
-                    query_filter=query_filter,
-                )
-            )
+        documents = await retriever.retrieve(
+            query=cleaned_query,
+            source=source,
+            limit=limit,
+            query_filter=query_filter,
+        )
 
-        return RetrievedContext(query=rewritten_query, documents=documents)
+        return RetrievedContext(
+            query=cleaned_query, 
+            documents=documents,
+            last_data_update=last_collection_update, 
+        )
 
-
-    def _rewrite_query(self, query: str) -> str:
-        return query.strip()

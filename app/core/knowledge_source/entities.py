@@ -13,6 +13,7 @@ class RetrievalDocument(BaseModel):
 
 class RetrievedContext(BaseModel):
     query: str
+    last_data_update: str | None
     documents: list[RetrievalDocument]
 
 
