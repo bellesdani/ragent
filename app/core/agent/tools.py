@@ -140,17 +140,15 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
             lines = []
-            lines.append(f"Consulta usada: {retrieval.query}")
-            if retrieval.last_data_update:
-                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
-            if department:
-                lines.append(f"Filtro aplicado: department = {department}")
+            lines.append(f"Consulta reescrita: {retrieval.query}")
+            lines.append(f"Resultado de la búsqueda:")
             for index, document in enumerate(retrieval.documents, start=1):
                 # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
                 #  ya que metadata guarda el json de cada empleado y puede tener datos más interesantes que el propio content
-                lines.append("")
-                lines.append(f"[{index}] Fuente: {document.id}")
-                lines.append(f"[{index}] Contenido: {document.metadata}")
+                lines.append(f" [{index}] Fuente: {document.id}")
+                lines.append(f" [{index}] Contenido: {document.metadata}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             return "\n".join(lines)
 
         return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -227,16 +225,16 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
             lines = []
-            lines.append(f"Consulta usada: {retrieval.query}")
-            if retrieval.last_data_update:
-                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
+            lines.append(f"Consulta reescrita: {retrieval.query}")
+            lines.append(f"Resultado de la búsqueda:")
             for index, document in enumerate(retrieval.documents, start=1):
                 # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
                 #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
-                lines.append("")
-                lines.append(f"[{index}] Fuente: {document.id}")
-                lines.append(f"[{index}] Contenido: {document.metadata}")
-                # lines.append(f"[{index}] Contenido: {document.content}")
+                lines.append(f" [{index}] Fuente: {document.id}")
+                lines.append(f" [{index}] Contenido: {document.metadata}")
+                # lines.append(f" [{index}] Contenido: {document.content}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -268,14 +266,14 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
             lines = []
-            lines.append(f"Consulta usada: {retrieval.query}")
+            lines.append(f"Consulta reescrita: {retrieval.query}")
+            lines.append(f"Resultado de la búsqueda:")
+            for index, document in enumerate(retrieval.documents, start=1):
+                lines.append(f" [{index}] Fuente: {document.id}")
+                lines.append(f" [{index}] Contenido: {document.content}")
+                lines.append(f" [{index}] Metadata: {document.metadata}")
             if retrieval.last_data_update:
                 lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
-            for index, document in enumerate(retrieval.documents, start=1):
-                lines.append("")
-                lines.append(f"[{index}] Fuente: {document.id}")
-                lines.append(f"[{index}] Contenido: {document.content}")
-                lines.append(f"[{index}] Metadata: {document.metadata}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
@@ -304,18 +302,18 @@ def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         # Prepara la información para la generación de la respuesta
         if retrieval.documents:
             lines = []
-            lines.append(f"Consulta usada: {retrieval.query}")
-            if retrieval.last_data_update:
-                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
+            lines.append(f"Consulta reescrita: {retrieval.query}")
+            lines.append(f"Resultado de la búsqueda:")
             for index, document in enumerate(retrieval.documents, start=1):
                 # Para el caso de los tickets, vamos a eliminar el histórico de artículos porque añade mucha basura
                 if "articles" in document.metadata:
                     document.metadata["articles"] = []
                 # Para cada ticket elegido, devolvemos identificador, contenido y metadatos
-                lines.append("")
-                lines.append(f"[{index}] Fuente: {document.id}")
-                lines.append(f"[{index}] Contenido: {document.content}")
-                lines.append(f"[{index}] Metadata: {document.metadata}")
+                lines.append(f" [{index}] Fuente: {document.id}")
+                lines.append(f" [{index}] Contenido: {document.content}")
+                lines.append(f" [{index}] Metadata: {document.metadata}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
             return "\n".join(lines)
         else:
             return "No se encontró evidencia relevante en las fuentes solicitadas."
