@@ -217,7 +217,7 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
                     phones_str.append(f"{phone.number} {phone.extension}")
                 else:
                     phones_str.append(f"{phone.number}")
-            lines.append("".join(phones_str))
+            lines.append(" ".join(phones_str))
         return "\n".join(lines)
     
 
