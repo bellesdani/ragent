@@ -209,7 +209,7 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         if employee.department:
             lines.append(f"{employee.department}")
         if employee.emails:
-            lines.append("".join(map(str, employee.emails)))
+            lines.append(" ".join(map(str, employee.emails)))
         if employee.phones:
             phones_str = []
             for phone in employee.phones:
@@ -230,6 +230,6 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         if employee.department:
             lines.append(f"Departamento: {employee.department}")
         if employee.emails:
-            lines.append(f"Emails: {",".join(map(str, employee.emails))}")
+            lines.append(f"Emails: {", ".join(map(str, employee.emails))}")
         return "\n".join(lines)
     
