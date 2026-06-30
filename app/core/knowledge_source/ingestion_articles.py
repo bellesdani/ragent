@@ -246,7 +246,7 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         if article.deactivated_at:
             lines.append(f"Fecha de baja: {article.deactivated_at}")
         if article.exclusive_customer_name:
-            lines.append(f"Cliente exclusivo al que se fabrica: {exclusive_customer_name}")
+            lines.append(f"Cliente exclusivo al que se fabrica: {article.exclusive_customer_name}")
         if article.in_catalog:
             if article.in_catalog == 1:
                 lines.append(f"Está en el catálogo: Sí")
