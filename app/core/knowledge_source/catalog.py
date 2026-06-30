@@ -69,6 +69,20 @@ class KnowledgeSourceCatalog():
                     semantic_content_key="semantic_content",
                 )
             ),
+            "articles": KnowledgeSourceDefinition(
+                id="articles",
+                name="Articles",
+                description="Artículos registrados en el ERP (PL_ARTICULOS).",
+                retrieval_type="hybrid",
+                collection_name="articles",
+                dense_vector_name="dense_vector",
+                sparse_vector_name="sparse_vector",
+                payload_keys=PayloadKeys(
+                    metadata_key="article",
+                    lexical_content_key="lexical_content",
+                    semantic_content_key="semantic_content",
+                )
+            ),
         }
 
 

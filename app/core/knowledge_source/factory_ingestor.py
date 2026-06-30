@@ -4,6 +4,7 @@ from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_devices import DevicesKnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_tickets import TicketsKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion_articles import ArticlesKnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_employees import EmployeesKnowledgeSourceIngestor
 from app.core.knowledge_source.ingestion_html_manuals import HtmlManualsKnowledgeSourceIngestor
 
@@ -42,6 +43,11 @@ class KnowledgeSourceIngestorFactory:
             )
         elif definition.id == "manuals":
             return HtmlManualsKnowledgeSourceIngestor(
+                settings=self.settings,
+                knowledge_source=definition,
+            )
+        elif definition.id == "articles":
+            return ArticlesKnowledgeSourceIngestor(
                 settings=self.settings,
                 knowledge_source=definition,
             )

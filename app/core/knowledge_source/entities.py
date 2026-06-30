@@ -238,3 +238,28 @@ class HtmlManualDocument:
     filename: str
     title: str
     chunks: list[HtmlManualChunk]
+
+
+@dataclass(frozen=True)
+class Article(BaseModel):
+    id: str | None = Field(default=None, alias="id")
+    description: str | None = Field(default=None, alias="descripcion")
+    average_cost_price: float | None = Field(default=None, alias="precio_medio_coste")
+    last_entry_price: float | None = Field(default=None, alias="precio_ult_entra")
+    main_unit: str | None = Field(default=None, alias="unidad_principal")
+    created_by_user: str | None = Field(default=None, alias="usuario_alta")
+    in_catalog: int | None = Field(default=None, alias="en_catalogo")
+    created_at: datetime | None = Field(default=None, alias="fecha_alta")
+    deactivated_at: datetime | None = Field(default=None, alias="fecha_baja")
+    kg_per_unit: float | None = Field(default=None, alias="kg_ud")
+    adn: str | None = Field(default=None, alias="adn")
+    sales_reference: str | None = Field(default=None, alias="referencia_venta")
+    ean13: str | None = Field(default=None, alias="ean13")
+    family_id: str | None = Field(default=None, alias="familia_id")
+    family_description: str | None = Field(default=None, alias="familia_descripcion")
+    subfamily_id: str | None = Field(default=None, alias="subfamilia_id")
+    subfamily_description: str | None = Field(default=None, alias="subfamilia_descripcion")
+    format_id: int | None = Field(default=None, alias="formato_id")
+    format_description: str | None = Field(default=None, alias="formato_descripcion")
+    exclusive_customer_id: str | None = Field(default=None, alias="cliente_exclusivo_id")
+    exclusive_customer_name: str | None = Field(default=None, alias="cliente_exclusivo_nombre")
