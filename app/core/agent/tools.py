@@ -43,6 +43,29 @@ def _extract_serial_numbers(serial_numbers: Optional[str]) -> list[str]:
     )
 
 
+def _extract_article_ids(article_ids: Optional[str]) -> list[str]:
+    if not article_ids:
+        return []
+
+    article_id_pattern = r"\b[A-Z]{3}\d{6}\b"
+    return list(dict.fromkeys(match.group(0) for match in re.finditer(article_id_pattern, article_ids)))
+
+
+def _build_articles_filter(article_ids: list[str]) -> Filter | None:
+    filter_conditions = []
+    if article_ids:
+        filter_conditions.append(
+            FieldCondition(
+                key="article.id",
+                match=MatchAny(any=article_ids)
+            )
+        )
+    if not filter_conditions:
+        return None
+
+    return Filter(must=filter_conditions)
+
+
 def _build_devices_filter(ip_addresses: list[str], mac_addresses: list[str], serial_numbers: list[str]) -> Filter | None:
     filter_conditions = []
     if ip_addresses:
@@ -219,6 +242,69 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             limit=retrieval_limit,
             query=retrieval_query,
             source_id="devices",
+            query_filter=qdrant_filter,
+        )
+
+        # Prepara la información para la generación de la respuesta
+        if retrieval.documents:
+            lines = []
+            lines.append(f"Consulta reescrita: {retrieval.query}")
+            lines.append(f"Resultado de la búsqueda:")
+            for index, document in enumerate(retrieval.documents, start=1):
+                # Aquí yo voy a ignorar el content que utilizo para el embedding y me voy a basar solo en metadata,
+                #  ya que metadata guarda el json de cada device y puede tener datos más interesantes que el propio content
+                lines.append(f" [{index}] Fuente: {document.id}")
+                lines.append(f" [{index}] Contenido: {document.metadata}")
+                # lines.append(f" [{index}] Contenido: {document.content}")
+            if retrieval.last_data_update:
+                lines.append(f"Datos actualizados a fecha de: {retrieval.last_data_update}")
+            return "\n".join(lines)
+        else:
+            return "No se encontró evidencia relevante en las fuentes solicitadas."
+
+
+def register_articles_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
+    @agent.tool
+    async def search_articles(
+        context: RunContext[AgentDeps],
+        query: str,
+        article_ids: Optional[str] = None,
+    ) -> str:
+        """
+        Esta herramienta permite recuperar de una colección de Qdrant información sobre los artículos guardados en el ERP.
+        Tanto aquellos artículos que producimos en Equipe Cerámicas (VEN) como los que adquirimos a otras empresas.
+        Permite obtener información específica sobre dicho artículo como por ejemplo:
+         - Descripción del artículo
+         - Fecha y usuario de alta.
+         - Características específicas de azulejos que producimos en Equipe como el adn, formato, etc.
+
+        Args:
+            query: Consulta autónoma, concreta y optimizada para búsqueda.
+                Si la pregunta del usuario depende del historial, debes incorporar el contexto relevante.
+                No uses referencias ambiguas como "su", "ese artículo", "el anterior" o "esa información".
+
+            article_ids: Texto que contiene uno o varios identificadores de artículos cuando el usuario quiere buscar artículos por id.
+                Si no hay identificadores de artículo claros, deja este parámetro como None.
+                Los identificadores de artículo empiezan con un prefijo de tres letras seguidos por seis números.
+                Algunos ejemplos son: VEN02384, PRO008842, MTO486248, COM985421 
+            
+        """
+        # Validación de la lista de IDs
+        valid_ids = _extract_article_ids(article_ids)
+        if valid_ids and not valid_ids:
+            raise ModelRetry("No se han encontrado identificadores de artículo válidos en la consulta.")
+
+        # Construimos el filtro de Qdrant
+        qdrant_filter = _build_articles_filter(valid_ids)
+        exact_values = valid_ids
+        retrieval_query = ", ".join(exact_values) if exact_values else query
+        retrieval_limit = max(len(valid_ids), 1) if qdrant_filter else 50
+
+        # Llamada a la base de conocimiento
+        retrieval = await context.deps.retriever.retrieve(
+            limit=retrieval_limit,
+            query=retrieval_query,
+            source_id="articles",
             query_filter=qdrant_filter,
         )
 

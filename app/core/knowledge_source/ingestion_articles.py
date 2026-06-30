@@ -248,7 +248,7 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         if article.exclusive_customer_name:
             lines.append(f"Cliente exclusivo al que se fabrica: {article.exclusive_customer_name}")
         if article.in_catalog:
-            if article.in_catalog == 1:
+            if article.in_catalog == -1:
                 lines.append(f"Está en el catálogo: Sí")
             else:
                 lines.append(f"Está en el catálogo: No")
