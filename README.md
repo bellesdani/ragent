@@ -6,15 +6,11 @@ RAGent funciona como una capa intermedia que encapsula modelos agénticos. Hacia
 
 ## API publicada
 
-Rutas principales:
+La API separa tres superficies funcionales:
 
-- `GET /health`: comprobación simple de estado.
-- `GET /v1/models`: lista los agentes públicos disponibles.
-- `POST /v1/chat/completions`: ejecuta el agente indicado en `model`.
-
-La aplicación usa FastAPI, así que también expone la documentación interactiva habitual en `/docs` y el esquema OpenAPI en `/openapi.json`.
-
-La ruta `POST /v1/chat/completions` acepta el formato habitual de OpenAI (`model`, `messages`, `temperature`, `max_tokens`, `stream`). Si `stream=true`, devuelve `text/event-stream`.
+- Conversación con agentes: endpoints compatibles con OpenAI que ejecutan agentes y pueden usar herramientas y búsqueda internamente.
+- Gestión e ingesta de fuentes de conocimiento: endpoints para listar fuentes, crear colecciones y añadir datos indexados.
+- Búsqueda directa en fuentes de conocimiento: endpoints de retrieval que devuelven documentos encontrados, sin llamar a un agente ni generar una respuesta conversacional.
 
 ## Agentes
 
@@ -86,6 +82,7 @@ La API incluye estas rutas principales:
 - `POST /knowledge-source/{knowledge_source_id}`: crea la colección de una fuente si no existe.
 - `POST /knowledge-source/{knowledge_source_id}/points/from-json`: añade o actualiza datos enviados como una lista JSON.
 - `POST /knowledge-source/{knowledge_source_id}/points/from-html`: añade o actualiza un manual HTML enviado como fichero.
+- `POST /knowledge-source/{knowledge_source_id}/search`: busca documentos directamente en una fuente y devuelve los resultados de retrieval.
 
 Los endpoints de `knowledge-source` devuelven respuestas con `status`, `operation` y `result`. Cuando la operación está asociada a una fuente concreta, también incluyen `knowledge_source_id`. En caso de error devuelven `status="error"` y un objeto `error` con `code`, `message` y, cuando aplica, `details`.
 

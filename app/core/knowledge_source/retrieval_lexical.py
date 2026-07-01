@@ -4,7 +4,7 @@ from app.core.knowledge_source.retrieval_abc import KnowledgeSourceRetrieval
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievalDocument
 
 
-class HybridKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
+class LexicalKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
     """
     Esta clase recupera documentos mediante búsqueda léxica.
      - Los vectores dispersos son las representaciones léxicas.

@@ -2,30 +2,45 @@ from typing import Any, List
 from dataclasses import asdict
 from pydantic import ValidationError
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter, Body, Depends, File, Request, UploadFile
 from app.core.knowledge_source.service import KnowledgeSourceService
+from fastapi import APIRouter, Body, Depends, File, Request, UploadFile
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.api.schemas.knowledge import (
     KnowledgeSourceCreateResponse,
     KnowledgeSourceUpsertResponse,
+    KnowledgeSourceSearchResponse,
+    KnowledgeSourceSearchRequest,
     KnowledgeSourceErrorResponse,
     KnowledgeSourcesListResponse,
     KnowledgeSourceUpsertResult,
+    KnowledgeSourceSearchResult,
     KnowledgeSourceCreateResult,
     KnowledgeSourcesListResult,
+    KnowledgeSourceSearchItem,
     KnowledgeSourceError,
     KnowledgeSourceItem,
 )
 
 
-router = APIRouter(tags=["Knowledge Sources"])
+KNOWLEDGE_MANAGEMENT_TAG = "Knowledge Sources - Management"
+KNOWLEDGE_INGESTION_TAG = "Knowledge Sources - Ingestion"
+KNOWLEDGE_SEARCH_TAG = "Knowledge Sources - Search"
+
+
+router = APIRouter()
 
 
 def get_knowledge_service(request: Request) -> KnowledgeSourceService:
     return request.app.state.knowledge_service
 
 
-@router.get("/knowledge-source", response_model=KnowledgeSourcesListResponse)
+@router.get(
+    path="/knowledge-source",
+    response_model=KnowledgeSourcesListResponse,
+    tags=[KNOWLEDGE_MANAGEMENT_TAG],
+    summary="Lista las fuentes de conocimiento",
+    description="Lista las fuentes de conocimiento disponibles para ingesta y búsqueda de datos",
+)
 async def get_knowledge_sources(
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service)
 ) -> KnowledgeSourcesListResponse | JSONResponse:
@@ -45,7 +60,13 @@ async def get_knowledge_sources(
         return _build_knowledge_error_response(exc)
 
 
-@router.post("/knowledge-source/{knowledge_source_id}", response_model=KnowledgeSourceCreateResponse)
+@router.post(
+    path="/knowledge-source/{knowledge_source_id}",
+    response_model=KnowledgeSourceCreateResponse,
+    tags=[KNOWLEDGE_MANAGEMENT_TAG],
+    summary="Crea una fuente de conocimiento",
+    description="Crea una fuente de conocimiento (colección en Qdrant) utilizando un esquema previamente definido",
+)
 async def create_knowledge_source(
     knowledge_source_id: str,
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service)
@@ -62,7 +83,13 @@ async def create_knowledge_source(
         return _build_knowledge_error_response(exc)
 
 
-@router.post("/knowledge-source/{knowledge_source_id}/points/from-json", response_model=KnowledgeSourceUpsertResponse)
+@router.post(
+    path="/knowledge-source/{knowledge_source_id}/points/from-json",
+    response_model=KnowledgeSourceUpsertResponse,
+    tags=[KNOWLEDGE_INGESTION_TAG],
+    summary="Inserta datos estructurados a una fuente de conocimiento",
+    description="Inserta o actualiza un punto de Qdrant de una fuente de conocimiento a partir de un JSON",
+)
 async def upsert_points_in_knowledge_source_from_json(
     knowledge_source_id: str,
     data: object | None = Body(default=None),
@@ -80,7 +107,13 @@ async def upsert_points_in_knowledge_source_from_json(
         return _build_knowledge_error_response(exc)
 
 
-@router.post("/knowledge-source/{knowledge_source_id}/points/from-html", response_model=KnowledgeSourceUpsertResponse)
+@router.post(
+    path="/knowledge-source/{knowledge_source_id}/points/from-html",
+    response_model=KnowledgeSourceUpsertResponse,
+    tags=[KNOWLEDGE_INGESTION_TAG],
+    summary="Inserta datos en HTML a una fuente de conocimiento",
+    description="Inserta o actualiza un punto/documento de Qdrant de una fuente de conocimiento a partir de un documento HTML",
+)
 async def upsert_points_in_knowledge_source_from_html(
     knowledge_source_id: str, 
     file: UploadFile | None = File(default=None),
@@ -105,10 +138,45 @@ async def upsert_points_in_knowledge_source_from_html(
         return _build_knowledge_error_response(exc)
 
 
+@router.post(
+    path="/knowledge-source/{knowledge_source_id}/search",
+    response_model=KnowledgeSourceSearchResponse,
+    tags=[KNOWLEDGE_SEARCH_TAG],
+    summary="Búsqueda directa en una fuente de conocimiento",
+    description="Ejecuta búsqueda directa en una fuente de conocimiento de Qdrant sin generar una respuesta conversacional",
+)
+async def search_knowledge_source(
+    knowledge_source_id: str,
+    search_request: KnowledgeSourceSearchRequest,
+    knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service),
+) -> KnowledgeSourceSearchResponse | JSONResponse:
+    try:
+        retrieval = await knowledge_service.search_knowledge_source(
+            knowledge_source_id=knowledge_source_id,
+            query=search_request.query,
+            limit=search_request.limit,
+        )
+        items = [
+            KnowledgeSourceSearchItem.model_validate(document.model_dump())
+            for document in retrieval.documents
+        ]
+        return KnowledgeSourceSearchResponse(
+            knowledge_source_id=knowledge_source_id,
+            result=KnowledgeSourceSearchResult(
+                query=retrieval.query,
+                last_data_update=retrieval.last_data_update,
+                items=items,
+                count=len(items),
+            ),
+        )
+    except Exception as exc:
+        return _build_knowledge_error_response(exc)
+
+
 def _build_knowledge_upsert_result(result: dict[str, Any]) -> KnowledgeSourceUpsertResult:
     points = result.get("points", 0)
     if not isinstance(points, int):
-        raise ValueError("El resultado de la ingesta no es valido")
+        raise ValueError("El resultado de la ingesta no es válido")
     return KnowledgeSourceUpsertResult(
         points=points,
         summary={
@@ -124,7 +192,7 @@ def _build_knowledge_error_response(exc: Exception) -> JSONResponse:
         return _build_error_response(
             status_code=422,
             code="invalid_knowledge_source_data",
-            message="Los datos enviados no son validos",
+            message="Los datos enviados no son válidos",
             details=exc.errors(
                 include_url=False,
                 include_context=False,
@@ -141,12 +209,12 @@ def _build_knowledge_error_response(exc: Exception) -> JSONResponse:
         return _build_error_response(
             status_code=500,
             code="knowledge_source_configuration_error",
-            message="La fuente de conocimiento no esta correctamente configurada",
+            message="La fuente de conocimiento no está correctamente configurada",
         )
     return _build_error_response(
         status_code=500,
         code="internal_error",
-        message="Se ha producido un error interno procesando la operacion",
+        message="Se ha producido un error interno procesando la operación",
     )
 
 

@@ -6,6 +6,7 @@ from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Retrie
 class SemanticKnowledgeSourceRetrieval(KnowledgeSourceRetrieval):
     """
     Esta clase recupera documentos mediante búsqueda semántica.
+     - Los vectores densos son las representaciones semánticas.
     """
 
     async def retrieve(

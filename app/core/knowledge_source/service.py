@@ -1,8 +1,8 @@
 from app.config import Settings
 from app.core.agent.service import AgentService
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
-from app.core.knowledge_source.entities import KnowledgeSourceDefinition
 from app.core.knowledge_source.factory_ingestor import KnowledgeSourceIngestorFactory
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievedContext
 
 
 class KnowledgeSourceService():
@@ -25,6 +25,7 @@ class KnowledgeSourceService():
             settings=settings,
             agent_service=agent_service
         )
+        self.retriever = agent_service.retriever
 
 
     def list_knowledge_sources(self) -> list[KnowledgeSourceDefinition]:
@@ -41,3 +42,15 @@ class KnowledgeSourceService():
         definition = self.catalog.get_knowledge_source(knowledge_source_id)
         ingestor = self.ingestor_factory.build(definition)
         return await ingestor.upsert_knowledge_source_data(data)
+
+
+    async def search_knowledge_source(self, knowledge_source_id: str, query: str, limit: int) -> RetrievedContext:
+        cleaned_query = query.strip()
+        if not cleaned_query:
+            raise ValueError("La query de búsqueda no puede estar vacía")
+
+        return await self.retriever.retrieve(
+            query=cleaned_query,
+            limit=limit,
+            source_id=knowledge_source_id,
+        )

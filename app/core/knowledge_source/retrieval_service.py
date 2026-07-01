@@ -6,6 +6,7 @@ from app.core.knowledge_source.entities import RetrievedContext
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.knowledge_source.retrieval_abc import KnowledgeSourceRetrieval
 from app.core.knowledge_source.retrieval_hybrid import HybridKnowledgeSourceRetrieval
+from app.core.knowledge_source.retrieval_lexical import LexicalKnowledgeSourceRetrieval
 from app.core.knowledge_source.retrieval_semantic import SemanticKnowledgeSourceRetrieval
 
 
@@ -36,6 +37,11 @@ class KnowledgeSourceRetrievalService:
                 qdrant_client=self.qdrant_client,
             ),
             "hybrid": HybridKnowledgeSourceRetrieval(
+                settings=settings,
+                embedding_client=embedding_client,
+                qdrant_client=self.qdrant_client,
+            ),
+            "lexical": LexicalKnowledgeSourceRetrieval(
                 settings=settings,
                 embedding_client=embedding_client,
                 qdrant_client=self.qdrant_client,
@@ -73,4 +79,3 @@ class KnowledgeSourceRetrievalService:
             documents=documents,
             last_data_update=last_collection_update, 
         )
-

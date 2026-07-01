@@ -19,7 +19,12 @@ def get_agent_service(request: Request) -> AgentService:
     return request.app.state.agent_service
 
 
-@router.get("/v1/models", response_model=ModelListResponse)
+@router.get(
+    path="/v1/models", 
+    response_model=ModelListResponse,
+    summary="Lista los modelos",
+    description="Lista los modelos/agentes públicos disponibles en formato OpenAI",
+)
 async def list_public_agents(agent_service: AgentService = Depends(get_agent_service)) -> ModelListResponse:
     return ModelListResponse(
         data=[
@@ -33,7 +38,12 @@ async def list_public_agents(agent_service: AgentService = Depends(get_agent_ser
     )
 
 
-@router.post("/v1/chat/completions", response_model=ChatCompletionResponse)
+@router.post(
+    path="/v1/chat/completions", 
+    response_model=ChatCompletionResponse,
+    summary="Inicia o continua una conversación con un modelo",
+    description="Inicia o continua una conversación con un modelo/agente seleccionado siguiendo el esquema de OpenAI",
+)
 async def create_chat_completion(
     request: ChatCompletionRequest, 
     agent_service: AgentService = Depends(get_agent_service),
