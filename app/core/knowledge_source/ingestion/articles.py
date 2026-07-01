@@ -1,19 +1,21 @@
+import uuid
+
 from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
-from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Employee
+from app.core.knowledge_source.ingestion.abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Article
 
 
 
-class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
+class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     """
-    Este ingestor prepara los empleados para su consulta como fuente de conocimiento. Utiliza:
+    Este ingestor prepara los artículos (PL_ARTÍCULOS) para su consulta como fuente de conocimiento. Utiliza:
      - La configuración base de ingesta (KnowledgeSourceIngestor)
 
     Funciones públicas:
-     - Crear la fuente de conocimiento de empleados (create_knowledge_source).
-     - Añadir datos de empleados a la fuente de conocimiento (upsert_knowledge_source_data).
+     - Crear la fuente de conocimiento de dispositivos (create_knowledge_source).
+     - Añadir datos de dispositivos a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
     def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition) -> None:
@@ -62,35 +64,42 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         # Añadimos índices para optimizar los filtros
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.phone_numbers",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.id",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.phone_extensions",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.adn",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.usernames",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.sales_reference",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.emails",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ean13",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.department",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.exclusive_customer_id",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.exclusive_customer_name",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True, # case-insensitive
@@ -100,7 +109,7 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.full_name",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.description",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True, # case-insensitive
@@ -114,12 +123,14 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
     async def upsert_knowledge_source_data(self, data):
         # Primero validamos el modelo de dato que recibimos
-        # Esperamos un conjunto de empleados
-        employees: list[Employee] = [
-            Employee.model_validate(item)
-            for item in data
-        ]
-        
+        # Esperamos un conjunto de artículos (PL_ARTICULOS)
+        articles: list[Article] = []
+        for item in data:
+            try:
+                articles.append(Article.model_validate(item))
+            except Exception as error:
+                print(error)
+
         # En segundo lugar, si no existe la colección en Qdrant, la creamos
         if not await self.qdrant_client.collection_exists(self.knowledge_source.collection_name):
             await self.create_knowledge_source()
@@ -128,12 +139,12 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         # Payload: 
         #  - semantic_text: Texto con el que generamos los embeddings semánticos para hacer búsqueda semántica
         #  - lexical_text: Texto con el que generamos los embeddings léxicos para hacer búsqueda por caracteres
-        #  - device: Json del dispositivo con el que podemos aplicar filtros y ver la información claramente 
+        #  - article: Json del artículo con el que podemos aplicar filtros y ver la información claramente 
         payloads = []
-        for employee in employees:
-            metadata = self._build_metadata(employee)
-            lexical_text = self._build_lexical_text(employee)
-            semantic_text = self._build_semantical_text(employee)
+        for article in articles:
+            metadata = article.model_dump(mode="json")
+            lexical_text = self._build_lexical_text(article)
+            semantic_text = self._build_semantical_text(article)
 
             payload = {
                 self.knowledge_source.payload_keys.semantic_content_key: semantic_text,
@@ -142,7 +153,6 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             }
             payloads.append(payload)
                 
-
         # En cuarto lugar, definimos los puntos de Qdrant
         # Point:
         #  - id: Identificador del punto
@@ -151,12 +161,12 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         dense_vector_name = self.knowledge_source.dense_vector_name
         sparse_vector_name = self.knowledge_source.sparse_vector_name
         assert dense_vector_name is not None and sparse_vector_name is not None
-        
+
         points: list[models.PointStruct] = []
         for payload in payloads:
             points.append(
                 models.PointStruct(
-                    id=payload[self.knowledge_source.payload_keys.metadata_key]["id"],
+                    id=self._build_article_id(payload[self.knowledge_source.payload_keys.metadata_key]["id"]),
                     vector={
                         dense_vector_name: await self.embedding_client.create_embedding(
                             input_text=payload[self.knowledge_source.payload_keys.semantic_content_key],
@@ -187,49 +197,64 @@ class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             )
 
         return {
-            "employees": len(employees),
+            "articles": len(articles),
             "points": len(points),
         }
 
 
-    def _build_metadata(self, employee: Employee):
-        employee_dict = employee.model_dump(mode="json")
-        employee_dict['usernames'] = [ email.split('@')[0] for email in employee.emails]
-        employee_dict['phone_numbers'] = [ phone.number for phone in employee.phones]
-        employee_dict['phone_extensions'] = [ phone.extension for phone in employee.phones]
-        return employee_dict
-
-
-    def _build_lexical_text(self, employee: Employee) -> str:
+    def _build_lexical_text(self, article: Article) -> str:
         lines = []
-        if employee.full_name and employee.alias:
-            lines.append(f"{employee.full_name} {employee.alias}")
-        if employee.full_name and not employee.alias:
-            lines.append(f"{employee.full_name}")
-        if employee.department:
-            lines.append(f"{employee.department}")
-        if employee.emails:
-            lines.append(" ".join(map(str, employee.emails)))
-        if employee.phones:
-            phones_str = []
-            for phone in employee.phones:
-                if phone.extension:
-                    phones_str.append(f"{phone.number} {phone.extension}")
-                else:
-                    phones_str.append(f"{phone.number}")
-            lines.append(" ".join(phones_str))
+        if article.id:
+            lines.append(article.id)
+        if article.description:
+            lines.append(article.description)
+        if article.created_by_user:
+            lines.append(article.created_by_user)
+        if article.adn:
+            lines.append(article.adn)
+        if article.sales_reference:
+            lines.append(article.sales_reference)
+        if article.ean13:
+            lines.append(article.ean13)
+        if article.family_description:
+            lines.append(article.family_description)
+        if article.subfamily_description:
+            lines.append(article.subfamily_description)
+        if article.format_description:
+            lines.append(article.format_description)
+        if article.exclusive_customer_name:
+            lines.append(article.exclusive_customer_name)
         return "\n".join(lines)
     
 
-    def _build_semantical_text(self, employee: Employee):
+    def _build_semantical_text(self, article: Article) -> str:
         lines = []
-        if employee.full_name and employee.alias:
-            lines.append(f"Nombre: {employee.full_name} ({employee.alias})")
-        if employee.full_name and not employee.alias:
-            lines.append(f"Nombre: {employee.full_name}")
-        if employee.department:
-            lines.append(f"Departamento: {employee.department}")
-        if employee.emails:
-            lines.append(f"Emails: {", ".join(map(str, employee.emails))}")
-        return "\n".join(lines)
+        if article.id:
+            lines.append(f"Identificador: {article.id}")
+        if article.description:
+            lines.append(f"Descripción: {article.description}")
+        if article.family_id:
+            lines.append(f"Familia: {article.family_id} ({article.family_description})")
+        if article.subfamily_id:
+            lines.append(f"Subfamilia: {article.subfamily_id} ({article.subfamily_description})")
+        if article.format_description:
+            lines.append(f"Formato: {article.format_description}")
+        if article.created_by_user:
+            lines.append(f"Creado por el usuario: {article.created_by_user}")
+        if article.created_at:
+            lines.append(f"Fecha de alta: {article.created_at}")
+        if article.deactivated_at:
+            lines.append(f"Fecha de baja: {article.deactivated_at}")
+        if article.exclusive_customer_name:
+            lines.append(f"Cliente exclusivo al que se fabrica: {article.exclusive_customer_name}")
+        if article.in_catalog:
+            if article.in_catalog == -1:
+                lines.append(f"Está en el catálogo: Sí")
+            else:
+                lines.append(f"Está en el catálogo: No")
+        return ".\n".join(lines)
     
+
+    def _build_article_id(self, article_id: str) -> str:
+        identifier = f"{self.knowledge_source.id}:{article_id}"
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, identifier))

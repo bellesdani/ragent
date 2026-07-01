@@ -2,10 +2,10 @@ from app.config import Settings
 from qdrant_client import AsyncQdrantClient
 from app.core.utils.embeddings import EmbeddingService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
-from app.core.knowledge_source.retrieval_abc import KnowledgeSourceRetrieval
-from app.core.knowledge_source.retrieval_hybrid import HybridKnowledgeSourceRetrieval
-from app.core.knowledge_source.retrieval_lexical import LexicalKnowledgeSourceRetrieval
-from app.core.knowledge_source.retrieval_semantic import SemanticKnowledgeSourceRetrieval
+from app.core.knowledge_source.retrieval.abc import KnowledgeSourceRetrieval
+from app.core.knowledge_source.retrieval.hybrid import HybridKnowledgeSourceRetrieval
+from app.core.knowledge_source.retrieval.lexical import LexicalKnowledgeSourceRetrieval
+from app.core.knowledge_source.retrieval.semantic import SemanticKnowledgeSourceRetrieval
 
 
 class KnowledgeSourceRetrievalFactory:

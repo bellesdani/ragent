@@ -1,16 +1,14 @@
-import uuid
-
 from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
-from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Article
+from app.core.knowledge_source.ingestion.abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Device
 
 
 
-class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
+class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     """
-    Este ingestor prepara los artículos (PL_ARTÍCULOS) para su consulta como fuente de conocimiento. Utiliza:
+    Este ingestor prepara los dispositivos para su consulta como fuente de conocimiento. Utiliza:
      - La configuración base de ingesta (KnowledgeSourceIngestor)
 
     Funciones públicas:
@@ -64,58 +62,98 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         # Añadimos índices para optimizar los filtros
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.id",
-            field_schema=models.KeywordIndexParams(
-                type=models.KeywordIndexType.KEYWORD,
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.adn",
-            field_schema=models.KeywordIndexParams(
-                type=models.KeywordIndexType.KEYWORD,
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.sales_reference",
-            field_schema=models.KeywordIndexParams(
-                type=models.KeywordIndexType.KEYWORD,
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ean13",
-            field_schema=models.KeywordIndexParams(
-                type=models.KeywordIndexType.KEYWORD,
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.exclusive_customer_id",
-            field_schema=models.KeywordIndexParams(
-                type=models.KeywordIndexType.KEYWORD,
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.exclusive_customer_name",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.name",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
-            )
+            ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.description",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.type",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
-            )
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.hostname",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.manufacturer",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=True, # case-insensitive
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.model",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=True, # case-insensitive
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.serial_number",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ip_addresses",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.mac_addresses",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.location",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=True, # case-insensitive
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.owner",
+            field_schema=models.TextIndexParams(
+                type=models.TextIndexType.TEXT,
+                lowercase=True, # case-insensitive
+                tokenizer=models.TokenizerType.WHITESPACE,
+                phrase_matching=False
+            ),
+        )
+        await self.qdrant_client.create_payload_index(
+            collection_name=self.knowledge_source.collection_name,
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.user",
+            field_schema=models.KeywordIndexParams(
+                type=models.KeywordIndexType.KEYWORD,
+            ),
         )
 
         return True
@@ -123,14 +161,12 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
     async def upsert_knowledge_source_data(self, data):
         # Primero validamos el modelo de dato que recibimos
-        # Esperamos un conjunto de artículos (PL_ARTICULOS)
-        articles: list[Article] = []
-        for item in data:
-            try:
-                articles.append(Article.model_validate(item))
-            except Exception as error:
-                print(error)
-
+        # Esperamos un conjunto de dispositivos
+        devices: list[Device] = [
+            Device.model_validate(item)
+            for item in data
+        ]
+        
         # En segundo lugar, si no existe la colección en Qdrant, la creamos
         if not await self.qdrant_client.collection_exists(self.knowledge_source.collection_name):
             await self.create_knowledge_source()
@@ -139,12 +175,12 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         # Payload: 
         #  - semantic_text: Texto con el que generamos los embeddings semánticos para hacer búsqueda semántica
         #  - lexical_text: Texto con el que generamos los embeddings léxicos para hacer búsqueda por caracteres
-        #  - article: Json del artículo con el que podemos aplicar filtros y ver la información claramente 
+        #  - device: Json del dispositivo con el que podemos aplicar filtros y ver la información claramente 
         payloads = []
-        for article in articles:
-            metadata = article.model_dump(mode="json")
-            lexical_text = self._build_lexical_text(article)
-            semantic_text = self._build_semantical_text(article)
+        for device in devices:
+            metadata = device.model_dump(mode="json")
+            lexical_text = self._build_lexical_text(device)
+            semantic_text = self._build_semantical_text(device)
 
             payload = {
                 self.knowledge_source.payload_keys.semantic_content_key: semantic_text,
@@ -153,6 +189,7 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             }
             payloads.append(payload)
                 
+
         # En cuarto lugar, definimos los puntos de Qdrant
         # Point:
         #  - id: Identificador del punto
@@ -166,7 +203,7 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         for payload in payloads:
             points.append(
                 models.PointStruct(
-                    id=self._build_article_id(payload[self.knowledge_source.payload_keys.metadata_key]["id"]),
+                    id=payload[self.knowledge_source.payload_keys.metadata_key]["id"],
                     vector={
                         dense_vector_name: await self.embedding_client.create_embedding(
                             input_text=payload[self.knowledge_source.payload_keys.semantic_content_key],
@@ -197,64 +234,69 @@ class ArticlesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             )
 
         return {
-            "articles": len(articles),
+            "devices": len(devices),
             "points": len(points),
         }
 
 
-    def _build_lexical_text(self, article: Article) -> str:
+    def _build_lexical_text(self, device: Device) -> str:
         lines = []
-        if article.id:
-            lines.append(article.id)
-        if article.description:
-            lines.append(article.description)
-        if article.created_by_user:
-            lines.append(article.created_by_user)
-        if article.adn:
-            lines.append(article.adn)
-        if article.sales_reference:
-            lines.append(article.sales_reference)
-        if article.ean13:
-            lines.append(article.ean13)
-        if article.family_description:
-            lines.append(article.family_description)
-        if article.subfamily_description:
-            lines.append(article.subfamily_description)
-        if article.format_description:
-            lines.append(article.format_description)
-        if article.exclusive_customer_name:
-            lines.append(article.exclusive_customer_name)
+        if device.name:
+            lines.append(device.name)
+        if device.hostname:
+            lines.append(device.hostname)
+        if device.type:
+            lines.append(device.type)
+        if device.operating_system:
+            lines.append(device.operating_system)
+        if device.architecture:
+            lines.append(device.architecture)
+        if device.manufacturer:
+            lines.append(device.manufacturer)
+        if device.model:
+            lines.append(device.model)
+        if device.serial_number:
+            lines.append(device.serial_number)
+        if device.owner:
+            lines.append(device.owner)
+        if device.user:
+            lines.append(device.user)
+        if device.ip_addresses:
+            lines.append(" ".join(map(str, device.ip_addresses)))
+        if device.mac_addresses:
+            lines.append(" ".join(map(str, device.mac_addresses)))
+        if device.vlans:
+            lines.append(" ".join(map(str, device.vlans)))
+        if device.cpus:
+            lines.append(" ".join(map(str, device.cpus)))
+        if device.comments:
+            lines.append(device.comments)
         return "\n".join(lines)
     
 
-    def _build_semantical_text(self, article: Article) -> str:
+    def _build_semantical_text(self, device: Device):
         lines = []
-        if article.id:
-            lines.append(f"Identificador: {article.id}")
-        if article.description:
-            lines.append(f"Descripción: {article.description}")
-        if article.family_id:
-            lines.append(f"Familia: {article.family_id} ({article.family_description})")
-        if article.subfamily_id:
-            lines.append(f"Subfamilia: {article.subfamily_id} ({article.subfamily_description})")
-        if article.format_description:
-            lines.append(f"Formato: {article.format_description}")
-        if article.created_by_user:
-            lines.append(f"Creado por el usuario: {article.created_by_user}")
-        if article.created_at:
-            lines.append(f"Fecha de alta: {article.created_at}")
-        if article.deactivated_at:
-            lines.append(f"Fecha de baja: {article.deactivated_at}")
-        if article.exclusive_customer_name:
-            lines.append(f"Cliente exclusivo al que se fabrica: {article.exclusive_customer_name}")
-        if article.in_catalog:
-            if article.in_catalog == -1:
-                lines.append(f"Está en el catálogo: Sí")
-            else:
-                lines.append(f"Está en el catálogo: No")
+        if device.name:
+            lines.append(f"Dispositivo: {device.name}")
+        if device.hostname:
+            lines.append(f"Nombre del host: {device.hostname}")
+        if device.type:
+            lines.append(f"Tipo: {device.type}")
+        if device.operating_system:
+            lines.append(f"Sistema operativo: {device.operating_system}")
+        if device.architecture:
+            lines.append(f"Arquitectura: {device.architecture}")
+        if device.manufacturer:
+            lines.append(f"Fabricante: {device.manufacturer}")
+        if device.model:
+            lines.append(f"Modelo: {device.model}")
+        if device.owner:
+            lines.append(f"Propietario: {device.owner}")
+        if device.user:
+            lines.append(f"Usuario: {device.user}")
+        if device.comments:
+            lines.append(f"Información adicional: {device.comments}")
+        if device.vlans and len(device.vlans) > 0:
+            lines.append(f"VLANs: {", ".join(map(str, device.vlans))}")
         return ".\n".join(lines)
     
-
-    def _build_article_id(self, article_id: str) -> str:
-        identifier = f"{self.knowledge_source.id}:{article_id}"
-        return str(uuid.uuid5(uuid.NAMESPACE_URL, identifier))

@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.abc import KnowledgeSourceIngestor
 from app.core.document_processing.html_manual_converter import HtmlManualConverter
 from app.core.knowledge_source.entities import HtmlManualChunk, HtmlManualDocument, KnowledgeSourceDefinition
 

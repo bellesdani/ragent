@@ -1,6 +1,6 @@
 from qdrant_client import models
 from qdrant_client.models import Filter
-from app.core.knowledge_source.retrieval_abc import KnowledgeSourceRetrieval
+from app.core.knowledge_source.retrieval.abc import KnowledgeSourceRetrieval
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievalDocument
 
 

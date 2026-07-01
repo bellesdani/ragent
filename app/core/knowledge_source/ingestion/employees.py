@@ -1,19 +1,19 @@
 from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
-from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Device
+from app.core.knowledge_source.ingestion.abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Employee
 
 
 
-class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
+class EmployeesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     """
-    Este ingestor prepara los dispositivos para su consulta como fuente de conocimiento. Utiliza:
+    Este ingestor prepara los empleados para su consulta como fuente de conocimiento. Utiliza:
      - La configuración base de ingesta (KnowledgeSourceIngestor)
 
     Funciones públicas:
-     - Crear la fuente de conocimiento de dispositivos (create_knowledge_source).
-     - Añadir datos de dispositivos a la fuente de conocimiento (upsert_knowledge_source_data).
+     - Crear la fuente de conocimiento de empleados (create_knowledge_source).
+     - Añadir datos de empleados a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
     def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition) -> None:
@@ -62,98 +62,51 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         # Añadimos índices para optimizar los filtros
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.name",
-            field_schema=models.TextIndexParams(
-                type=models.TextIndexType.TEXT,
-                lowercase=True, # case-insensitive
-                tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=False
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.type",
-            field_schema=models.TextIndexParams(
-                type=models.TextIndexType.TEXT,
-                lowercase=True, # case-insensitive
-                tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=False
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.hostname",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.phone_numbers",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.manufacturer",
-            field_schema=models.TextIndexParams(
-                type=models.TextIndexType.TEXT,
-                lowercase=True, # case-insensitive
-                tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=False
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.model",
-            field_schema=models.TextIndexParams(
-                type=models.TextIndexType.TEXT,
-                lowercase=True, # case-insensitive
-                tokenizer=models.TokenizerType.WHITESPACE,
-                phrase_matching=False
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.serial_number",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.phone_extensions",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.ip_addresses",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.usernames",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.mac_addresses",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.emails",
             field_schema=models.KeywordIndexParams(
                 type=models.KeywordIndexType.KEYWORD,
             ),
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.location",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.department",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
-            ),
+            )
         )
         await self.qdrant_client.create_payload_index(
             collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.owner",
+            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.full_name",
             field_schema=models.TextIndexParams(
                 type=models.TextIndexType.TEXT,
                 lowercase=True, # case-insensitive
                 tokenizer=models.TokenizerType.WHITESPACE,
                 phrase_matching=False
-            ),
-        )
-        await self.qdrant_client.create_payload_index(
-            collection_name=self.knowledge_source.collection_name,
-            field_name=f"{self.knowledge_source.payload_keys.metadata_key}.user",
-            field_schema=models.KeywordIndexParams(
-                type=models.KeywordIndexType.KEYWORD,
-            ),
+            )
         )
 
         return True
@@ -161,9 +114,9 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
 
     async def upsert_knowledge_source_data(self, data):
         # Primero validamos el modelo de dato que recibimos
-        # Esperamos un conjunto de dispositivos
-        devices: list[Device] = [
-            Device.model_validate(item)
+        # Esperamos un conjunto de empleados
+        employees: list[Employee] = [
+            Employee.model_validate(item)
             for item in data
         ]
         
@@ -177,10 +130,10 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         #  - lexical_text: Texto con el que generamos los embeddings léxicos para hacer búsqueda por caracteres
         #  - device: Json del dispositivo con el que podemos aplicar filtros y ver la información claramente 
         payloads = []
-        for device in devices:
-            metadata = device.model_dump(mode="json")
-            lexical_text = self._build_lexical_text(device)
-            semantic_text = self._build_semantical_text(device)
+        for employee in employees:
+            metadata = self._build_metadata(employee)
+            lexical_text = self._build_lexical_text(employee)
+            semantic_text = self._build_semantical_text(employee)
 
             payload = {
                 self.knowledge_source.payload_keys.semantic_content_key: semantic_text,
@@ -198,7 +151,7 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
         dense_vector_name = self.knowledge_source.dense_vector_name
         sparse_vector_name = self.knowledge_source.sparse_vector_name
         assert dense_vector_name is not None and sparse_vector_name is not None
-
+        
         points: list[models.PointStruct] = []
         for payload in payloads:
             points.append(
@@ -234,69 +187,49 @@ class DevicesKnowledgeSourceIngestor(KnowledgeSourceIngestor):
             )
 
         return {
-            "devices": len(devices),
+            "employees": len(employees),
             "points": len(points),
         }
 
 
-    def _build_lexical_text(self, device: Device) -> str:
+    def _build_metadata(self, employee: Employee):
+        employee_dict = employee.model_dump(mode="json")
+        employee_dict['usernames'] = [ email.split('@')[0] for email in employee.emails]
+        employee_dict['phone_numbers'] = [ phone.number for phone in employee.phones]
+        employee_dict['phone_extensions'] = [ phone.extension for phone in employee.phones]
+        return employee_dict
+
+
+    def _build_lexical_text(self, employee: Employee) -> str:
         lines = []
-        if device.name:
-            lines.append(device.name)
-        if device.hostname:
-            lines.append(device.hostname)
-        if device.type:
-            lines.append(device.type)
-        if device.operating_system:
-            lines.append(device.operating_system)
-        if device.architecture:
-            lines.append(device.architecture)
-        if device.manufacturer:
-            lines.append(device.manufacturer)
-        if device.model:
-            lines.append(device.model)
-        if device.serial_number:
-            lines.append(device.serial_number)
-        if device.owner:
-            lines.append(device.owner)
-        if device.user:
-            lines.append(device.user)
-        if device.ip_addresses:
-            lines.append(" ".join(map(str, device.ip_addresses)))
-        if device.mac_addresses:
-            lines.append(" ".join(map(str, device.mac_addresses)))
-        if device.vlans:
-            lines.append(" ".join(map(str, device.vlans)))
-        if device.cpus:
-            lines.append(" ".join(map(str, device.cpus)))
-        if device.comments:
-            lines.append(device.comments)
+        if employee.full_name and employee.alias:
+            lines.append(f"{employee.full_name} {employee.alias}")
+        if employee.full_name and not employee.alias:
+            lines.append(f"{employee.full_name}")
+        if employee.department:
+            lines.append(f"{employee.department}")
+        if employee.emails:
+            lines.append(" ".join(map(str, employee.emails)))
+        if employee.phones:
+            phones_str = []
+            for phone in employee.phones:
+                if phone.extension:
+                    phones_str.append(f"{phone.number} {phone.extension}")
+                else:
+                    phones_str.append(f"{phone.number}")
+            lines.append(" ".join(phones_str))
         return "\n".join(lines)
     
 
-    def _build_semantical_text(self, device: Device):
+    def _build_semantical_text(self, employee: Employee):
         lines = []
-        if device.name:
-            lines.append(f"Dispositivo: {device.name}")
-        if device.hostname:
-            lines.append(f"Nombre del host: {device.hostname}")
-        if device.type:
-            lines.append(f"Tipo: {device.type}")
-        if device.operating_system:
-            lines.append(f"Sistema operativo: {device.operating_system}")
-        if device.architecture:
-            lines.append(f"Arquitectura: {device.architecture}")
-        if device.manufacturer:
-            lines.append(f"Fabricante: {device.manufacturer}")
-        if device.model:
-            lines.append(f"Modelo: {device.model}")
-        if device.owner:
-            lines.append(f"Propietario: {device.owner}")
-        if device.user:
-            lines.append(f"Usuario: {device.user}")
-        if device.comments:
-            lines.append(f"Información adicional: {device.comments}")
-        if device.vlans and len(device.vlans) > 0:
-            lines.append(f"VLANs: {", ".join(map(str, device.vlans))}")
-        return ".\n".join(lines)
+        if employee.full_name and employee.alias:
+            lines.append(f"Nombre: {employee.full_name} ({employee.alias})")
+        if employee.full_name and not employee.alias:
+            lines.append(f"Nombre: {employee.full_name}")
+        if employee.department:
+            lines.append(f"Departamento: {employee.department}")
+        if employee.emails:
+            lines.append(f"Emails: {", ".join(map(str, employee.emails))}")
+        return "\n".join(lines)
     

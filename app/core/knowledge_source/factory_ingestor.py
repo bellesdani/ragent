@@ -1,12 +1,12 @@
 from app.config import Settings
 from app.core.agent.summarizer_service import SummarizerService
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
-from app.core.knowledge_source.ingestion_devices import DevicesKnowledgeSourceIngestor
-from app.core.knowledge_source.ingestion_tickets import TicketsKnowledgeSourceIngestor
-from app.core.knowledge_source.ingestion_articles import ArticlesKnowledgeSourceIngestor
-from app.core.knowledge_source.ingestion_employees import EmployeesKnowledgeSourceIngestor
-from app.core.knowledge_source.ingestion_html_manuals import HtmlManualsKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.devices import DevicesKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.tickets import TicketsKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.articles import ArticlesKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.employees import EmployeesKnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.html_manuals import HtmlManualsKnowledgeSourceIngestor
 
 
 class KnowledgeSourceIngestorFactory:

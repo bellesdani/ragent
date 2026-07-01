@@ -6,7 +6,7 @@ from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
 from app.core.agent.summarizer_service import SummarizerService
-from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
+from app.core.knowledge_source.ingestion.abc import KnowledgeSourceIngestor
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, TicketArticleRow, TicketArticle, Ticket
 
 
