@@ -43,8 +43,8 @@ class AgentService:
         )
 
 
-    def list_agents(self) -> list[AgentDefinition]:
-        return self.agent_catalog.list_agents()
+    def list_public_agents(self) -> list[AgentDefinition]:
+        return self.agent_catalog.list_public_agents()
 
 
     async def complete_chat(self, model: str, messages: list[ChatMessage], temperature: float | None, max_tokens: int | None) -> ChatResult:

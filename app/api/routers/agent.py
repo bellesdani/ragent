@@ -20,7 +20,7 @@ def get_agent_service(request: Request) -> AgentService:
 
 
 @router.get("/v1/models", response_model=ModelListResponse)
-async def list_models(agent_service: AgentService = Depends(get_agent_service)) -> ModelListResponse:
+async def list_public_agents(agent_service: AgentService = Depends(get_agent_service)) -> ModelListResponse:
     return ModelListResponse(
         data=[
             ModelCard(
@@ -28,7 +28,7 @@ async def list_models(agent_service: AgentService = Depends(get_agent_service)) 
                 name=agent.name,
                 description=agent.description,
             )
-            for agent in agent_service.list_agents()
+            for agent in agent_service.list_public_agents()
         ]
     )
 

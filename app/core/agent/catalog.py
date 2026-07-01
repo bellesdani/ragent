@@ -52,7 +52,7 @@ class AgentCatalog:
         }
 
 
-    def list_agents(self) -> list[AgentDefinition]:
+    def list_public_agents(self) -> list[AgentDefinition]:
         return [
             agent  
             for agent in self._agents.values()
