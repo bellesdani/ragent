@@ -12,13 +12,13 @@ from app.core.knowledge_source.entities import HtmlManualChunk, HtmlManualDocume
 class HtmlManualsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     """
     Este ingestor prepara los manuales HTML para su consulta como fuente de conocimiento. Utiliza:
-     - La configuracion base de ingesta (KnowledgeSourceIngestor)
+     - La configuración base de ingesta (KnowledgeSourceIngestor)
      - El servicio de procesado de manuales HTML (HtmlManualConverter)
      - El modelo de embeddings multimodal configurado
 
-    Funciones publicas:
+    Funciones públicas:
      - Crear la fuente de conocimiento de manuales (create_knowledge_source).
-     - Anadir un manual HTML a la fuente de conocimiento (upsert_knowledge_source_data).
+     - Añadir un manual HTML a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
     max_chunk_chars = 2500

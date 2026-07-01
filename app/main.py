@@ -10,7 +10,7 @@ API_DESCRIPTION = (
     " así como puntos de conexión directos a fuentes de conocimiento para la gestión,"
     " la ingesta y la recuperación de información. \n"
     " - Los puntos de conexión de chat para agentes (*agents*) generan respuestas conversacionales. \n"
-    " - Los puntos de conexión a fuentes de conocimiento (*knowlege_sources*) gestionan datos indexados"
+    " - Los puntos de conexión a fuentes de conocimiento (*knowledge_sources*) gestionan datos indexados"
     " o devuelven directamente los resultados de la búsqueda."
 )
 

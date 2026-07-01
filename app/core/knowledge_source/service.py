@@ -10,12 +10,14 @@ from app.core.knowledge_source.entities import KnowledgeSourceDefinition, Retrie
 
 class KnowledgeSourceService:
     """
-    Este servicio es la fachada de fuentes de conocimiento.
+    Este servicio es la fachada de fuentes de conocimiento. Coordina el catálogo,
+    la ingesta y la recuperación directa de documentos.
 
-    Funciones publicas:
+    Funciones públicas:
      - Listar las fuentes de conocimiento disponibles (list_knowledge_sources).
      - Crear una nueva fuente de conocimiento (create_knowledge_source).
-     - Anadir datos a una fuente de conocimiento (upsert_knowledge_source_data).
+     - Añadir datos a una fuente de conocimiento (upsert_knowledge_source_data).
+     - Buscar documentos en una fuente concreta desde la API (search_knowledge_source).
      - Recuperar documentos relevantes para una consulta (retrieve).
     """
 

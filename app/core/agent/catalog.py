@@ -10,7 +10,7 @@ class AgentCatalog:
      - El servicio de prompts (PromptService)
 
     Funciones públicas:
-     - Listar los agentes publicados (list_agents).
+     - Listar los agentes publicados (list_public_agents).
      - Obtener un agente por identificador (get_agent).
     """
 

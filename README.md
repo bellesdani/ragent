@@ -32,7 +32,7 @@ El módulo de agentes se reparte en estas piezas principales:
 - `AgentCatalog`: lista y resuelve las definiciones de agentes.
 - `AgentFactory`: construye agentes ejecutables sobre un backend OpenAI-compatible.
 - `AgentService`: coordina historial, ejecución y respuesta compatible con OpenAI.
-- `SummarizerService`: ejecuta el agente interno de resumen para procesos auxiliares.
+- `SummarizerService`: ejecuta el agente interno `Summarizer` para procesos auxiliares de ingesta.
 - `app/core/agent/tools.py`: registra las herramientas disponibles para los agentes habilitados.
 
 Los prompts viven en `app/core/prompts` y se cargan desde `PromptService`. Esto permite publicar distintos comportamientos agénticos sobre el mismo proveedor y el mismo modelo base, desacoplando la integración cliente de la implementación real.
@@ -61,12 +61,12 @@ Las fuentes se definen en `app/core/knowledge_source/catalog.py`. El catálogo e
 La parte de fuentes de conocimiento se organiza así:
 
 - `KnowledgeSourceCatalog`: lista y resuelve las fuentes disponibles.
-- `KnowledgeSourceService`: coordina las operaciones públicas sobre fuentes de conocimiento.
+- `KnowledgeSourceService`: coordina las operaciones públicas sobre fuentes de conocimiento, incluida la búsqueda.
 - `KnowledgeSourceIngestorFactory`: selecciona el servicio de ingesta adecuado para cada fuente.
 - `KnowledgeSourceRetrievalFactory`: selecciona la estrategia de búsqueda adecuada para cada fuente.
 - `app/core/document_processing`: encapsula el procesado previo a la ingesta, como la conversión de manuales HTML en bloques listos para indexar.
 
-Las fuentes configuradas actualmente son `devices`, `employees`, `manuals` y `tickets`. Todas usan recuperación híbrida sobre Qdrant.
+Las fuentes configuradas actualmente son `devices`, `employees`, `manuals`, `tickets` y `articles`. Todas usan recuperación híbrida sobre Qdrant.
 
 Detalles relevantes:
 
@@ -74,6 +74,7 @@ Detalles relevantes:
 - `employees`: información de empleados y datos de contacto corporativo.
 - `manuals`: manuales HTML convertidos a bloques de texto e imagen para su indexación.
 - `tickets`: incidencias de HelpDesk; durante la ingesta se apoya en `SummarizerService`.
+- `articles`: artículos registrados en el ERP.
 
 La fuente `manuals` admite la ingesta de ficheros HTML y puede generar embeddings multimodales cuando el modelo de embeddings configurado acepta texto e imagen en el endpoint `/embeddings`.
 

@@ -13,7 +13,7 @@ class KnowledgeSourceIngestorFactory:
     """
     Esta factoría construye servicios de ingesta para cada fuente de conocimiento. Utiliza:
      - Las variables cargadas (Settings)
-     - El servicio de resumen (SummarizerService), ya que algún proceso de ingesta puede requerir resumir contenido.
+     - El servicio de resumen (SummarizerService), que crea y reutiliza para ingestas que necesitan generar contenido auxiliar.
 
     Funciones públicas:
      - Construir el servicio de ingesta correspondiente (build).

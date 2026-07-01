@@ -9,7 +9,11 @@ from app.core.utils.prompts import PromptService
 
 class SummarizerService:
     """
-    Servicio interno para generar resumenes auxiliares sin acoplar la ingesta de conocimiento al servicio publico de agentes.
+    Servicio interno para generar resúmenes auxiliares sin acoplar la ingesta
+    de conocimiento a la fachada pública de agentes.
+
+    Funciones públicas:
+     - Generar un resumen con el agente interno Summarizer (summarize).
     """
 
     def __init__(self, settings: Settings) -> None:

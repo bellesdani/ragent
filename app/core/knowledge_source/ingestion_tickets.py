@@ -15,7 +15,7 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     """
     Este ingestor prepara los tickets para su consulta como fuente de conocimiento. Utiliza:
      - La configuración base de ingesta (KnowledgeSourceIngestor)
-     - El agente de resumen de tickets
+     - El servicio interno de resumen de tickets (SummarizerService)
 
     Funciones públicas:
      - Crear la fuente de conocimiento de tickets (create_knowledge_source).

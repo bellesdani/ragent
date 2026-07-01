@@ -13,7 +13,7 @@ class KnowledgeSourceRetrievalFactory:
     Esta factoría selecciona la estrategia de búsqueda configurada para cada fuente de conocimiento.
 
     Funciones públicas:
-     - Construir el servicio de búsqueda correspondiente (build).
+     - Obtener la estrategia de búsqueda correspondiente (build).
     """
 
     def __init__(self, settings: Settings, embedding_client: EmbeddingService, qdrant_client: AsyncQdrantClient) -> None:

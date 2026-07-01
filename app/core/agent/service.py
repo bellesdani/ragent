@@ -21,7 +21,7 @@ class AgentService:
      - La fachada de fuentes de conocimiento (KnowledgeSourceService)
     
     Funciones públicas:
-     - Listar los agentes disponibles (list_agents).
+     - Listar los agentes publicados (list_public_agents).
      - Realizar un chat completion con un agente concreto (complete_chat).
     """
 
