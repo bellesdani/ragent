@@ -38,17 +38,6 @@ class AgentCatalog:
                 enable_tools=False,
                 public=False,
             ),
-            "Summarizer": AgentDefinition(
-                agent_id="Summarizer",
-                name="Summarizer",
-                description="Agente especializado en resumir las incidencias de HelpDesk.",
-                backend_base_url=settings.chat_base_url,
-                backend_api_key=settings.chat_api_key,
-                backend_chat_model=settings.chat_model,
-                system_prompt=prompt_service.load_prompt("summarizer_system.md"),
-                enable_tools=False,
-                public=False,
-            ),
         }
 
 
