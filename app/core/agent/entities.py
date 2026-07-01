@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from app.core.chat.entities import ChatMessage
 
 if TYPE_CHECKING:
-    from app.core.knowledge_source.retrieval_service import KnowledgeSourceRetrievalService
+    from app.core.knowledge_source.service import KnowledgeSourceService
 
 
 @dataclass(frozen=True)
@@ -21,5 +21,5 @@ class AgentDefinition:
 
 @dataclass
 class AgentDeps:
-    retriever: "KnowledgeSourceRetrievalService"
+    knowledge_service: "KnowledgeSourceService"
     messages: list[ChatMessage]

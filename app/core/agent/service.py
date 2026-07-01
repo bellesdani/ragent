@@ -1,15 +1,14 @@
 from app.config import Settings
 from pydantic_ai.usage import UsageLimits
-from app.core.utils.prompts import PromptService
 from pydantic_ai.settings import ModelSettings
 from app.core.agent.catalog import AgentCatalog
 from pydantic_ai import UnexpectedModelBehavior
 from app.core.agent.factory import AgentFactory
-from app.core.utils.embeddings import EmbeddingService
+from app.core.utils.prompts import PromptService
 from app.core.agent.entities import AgentDefinition, AgentDeps
+from app.core.knowledge_source.service import KnowledgeSourceService
 from app.core.chat.entities import ChatCompletionUsage, ChatMessage, ChatResult
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart
-from app.core.knowledge_source.retrieval_service import KnowledgeSourceRetrievalService
 
 
 class AgentService:
@@ -19,27 +18,22 @@ class AgentService:
      - El catálogo de agentes (AgentCatalog)
      - El servicio de prompts (PromptService)
      - La factoría de agentes para construirlos (AgentFactory)
-     - El servicio de recuperación de fuentes de conocimiento (KnowledgeSourceRetrievalService)
+     - La fachada de fuentes de conocimiento (KnowledgeSourceService)
     
     Funciones públicas:
      - Listar los agentes disponibles (list_agents).
      - Realizar un chat completion con un agente concreto (complete_chat).
     """
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, knowledge_service: KnowledgeSourceService) -> None:
         self.settings = settings
+        self.knowledge_service = knowledge_service
         self.factory = AgentFactory(
             settings=settings,
         )
         self.agent_catalog = AgentCatalog(
             settings=settings,
             prompt_service=PromptService()
-        )
-        self.retriever = KnowledgeSourceRetrievalService(
-            settings=settings, 
-            embedding_client=EmbeddingService(
-                settings=settings,
-            )
         )
 
 
@@ -62,7 +56,7 @@ class AgentService:
                 message_history=message_history,
                 usage_limits=UsageLimits(request_limit=10),
                 deps=AgentDeps(
-                    retriever=self.retriever, 
+                    knowledge_service=self.knowledge_service,
                     messages=messages
                 ),
                 model_settings= ModelSettings(

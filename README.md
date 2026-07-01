@@ -32,6 +32,7 @@ El módulo de agentes se reparte en estas piezas principales:
 - `AgentCatalog`: lista y resuelve las definiciones de agentes.
 - `AgentFactory`: construye agentes ejecutables sobre un backend OpenAI-compatible.
 - `AgentService`: coordina historial, ejecución y respuesta compatible con OpenAI.
+- `SummarizerService`: ejecuta el agente interno de resumen para procesos auxiliares.
 - `app/core/agent/tools.py`: registra las herramientas disponibles para los agentes habilitados.
 
 Los prompts viven en `app/core/prompts` y se cargan desde `PromptService`. Esto permite publicar distintos comportamientos agénticos sobre el mismo proveedor y el mismo modelo base, desacoplando la integración cliente de la implementación real.
@@ -44,7 +45,7 @@ Flujo principal de una petición de chat:
 2. `AgentService` obtiene la definición desde `AgentCatalog`.
 3. `AgentFactory` construye el agente con su prompt, su proveedor de chat y sus herramientas.
 4. El agente responde directamente o solicita contexto mediante herramientas.
-5. Las herramientas consultan Qdrant a través de `KnowledgeSourceRetrievalService` cuando aplica.
+5. Las herramientas consultan Qdrant a través de `KnowledgeSourceService` cuando aplica.
 6. La API devuelve una respuesta `chat.completion` compatible con OpenAI.
 
 Internamente los agentes se ejecutan con PydanticAI y usan:
@@ -60,9 +61,9 @@ Las fuentes se definen en `app/core/knowledge_source/catalog.py`. El catálogo e
 La parte de fuentes de conocimiento se organiza así:
 
 - `KnowledgeSourceCatalog`: lista y resuelve las fuentes disponibles.
-- `KnowledgeSourceRetrievalService`: recupera contexto relevante para las herramientas de los agentes.
 - `KnowledgeSourceService`: coordina las operaciones públicas sobre fuentes de conocimiento.
 - `KnowledgeSourceIngestorFactory`: selecciona el servicio de ingesta adecuado para cada fuente.
+- `KnowledgeSourceRetrievalFactory`: selecciona la estrategia de búsqueda adecuada para cada fuente.
 - `app/core/document_processing`: encapsula el procesado previo a la ingesta, como la conversión de manuales HTML en bloques listos para indexar.
 
 Las fuentes configuradas actualmente son `devices`, `employees`, `manuals` y `tickets`. Todas usan recuperación híbrida sobre Qdrant.
@@ -72,7 +73,7 @@ Detalles relevantes:
 - `devices`: información de dispositivos, equipos de usuario y servidores.
 - `employees`: información de empleados y datos de contacto corporativo.
 - `manuals`: manuales HTML convertidos a bloques de texto e imagen para su indexación.
-- `tickets`: incidencias de HelpDesk; durante la ingesta se apoya en el agente interno `Summarizer`.
+- `tickets`: incidencias de HelpDesk; durante la ingesta se apoya en `SummarizerService`.
 
 La fuente `manuals` admite la ingesta de ficheros HTML y puede generar embeddings multimodales cuando el modelo de embeddings configurado acepta texto e imagen en el endpoint `/embeddings`.
 

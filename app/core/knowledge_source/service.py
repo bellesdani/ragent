@@ -1,36 +1,47 @@
 from app.config import Settings
-from app.core.agent.service import AgentService
+from qdrant_client.models import Filter
+from qdrant_client import AsyncQdrantClient
+from app.core.utils.embeddings import EmbeddingService
 from app.core.knowledge_source.catalog import KnowledgeSourceCatalog
 from app.core.knowledge_source.factory_ingestor import KnowledgeSourceIngestorFactory
+from app.core.knowledge_source.factory_retrieval import KnowledgeSourceRetrievalFactory
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, RetrievedContext
 
 
-class KnowledgeSourceService():
+class KnowledgeSourceService:
     """
-    Este servicio es el punto de acceso y gestor de fuentes de conocimiento. Utiliza:
-     - Las variables cargadas (Settings)
-     - El catálogo de fuentes de conocimiento (KnowledgeSourceCatalog)
-     - El factory de servicios de ingesta de Qdrant (KnowledgeSourceIngestorFactory)
-    
-    Funciones públicas:
+    Este servicio es la fachada de fuentes de conocimiento.
+
+    Funciones publicas:
      - Listar las fuentes de conocimiento disponibles (list_knowledge_sources).
      - Crear una nueva fuente de conocimiento (create_knowledge_source).
-     - Añadir datos a una fuente de conocimiento (upsert_knowledge_source_data).
+     - Anadir datos a una fuente de conocimiento (upsert_knowledge_source_data).
+     - Recuperar documentos relevantes para una consulta (retrieve).
     """
-    
-    def __init__(self, settings: Settings, agent_service: AgentService) -> None:
+
+    def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.catalog = KnowledgeSourceCatalog()
+        self.embedding_client = EmbeddingService(
+            settings=settings,
+        )
+        self.qdrant_client = AsyncQdrantClient(
+            url=settings.qdrant_url,
+            api_key=settings.qdrant_api_key or None,
+        )
         self.ingestor_factory = KnowledgeSourceIngestorFactory(
             settings=settings,
-            agent_service=agent_service
         )
-        self.retriever = agent_service.retriever
+        self.retrieval_factory = KnowledgeSourceRetrievalFactory(
+            settings=settings,
+            embedding_client=self.embedding_client,
+            qdrant_client=self.qdrant_client,
+        )
 
 
     def list_knowledge_sources(self) -> list[KnowledgeSourceDefinition]:
         return self.catalog.list_knowledge_sources()
-    
+
 
     async def create_knowledge_source(self, knowledge_source_id: str):
         definition = self.catalog.get_knowledge_source(knowledge_source_id)
@@ -45,12 +56,35 @@ class KnowledgeSourceService():
 
 
     async def search_knowledge_source(self, knowledge_source_id: str, query: str, limit: int) -> RetrievedContext:
-        cleaned_query = query.strip()
-        if not cleaned_query:
-            raise ValueError("La query de búsqueda no puede estar vacía")
-
-        return await self.retriever.retrieve(
-            query=cleaned_query,
+        return await self.retrieve(
+            query=query,
             limit=limit,
             source_id=knowledge_source_id,
+        )
+
+
+    async def retrieve(self, query: str, limit: int, source_id: str, query_filter: Filter | None = None) -> RetrievedContext:
+        cleaned_query = query.strip()
+        if not cleaned_query:
+            raise ValueError("La query de busqueda no puede estar vacia")
+
+        source = self.catalog.get_knowledge_source(source_id)
+        retriever = self.retrieval_factory.build(source)
+
+        last_collection_update = None
+        collection_info = await self.qdrant_client.get_collection(collection_name=source.collection_name)
+        if collection_info.config.metadata:
+            last_collection_update = collection_info.config.metadata.get("last_collection_update")
+
+        documents = await retriever.retrieve(
+            query=cleaned_query,
+            source=source,
+            limit=limit,
+            query_filter=query_filter,
+        )
+
+        return RetrievedContext(
+            query=cleaned_query,
+            documents=documents,
+            last_data_update=last_collection_update,
         )

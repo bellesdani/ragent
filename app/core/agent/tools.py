@@ -153,7 +153,7 @@ def register_employees_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             )
 
         # Llamada a la base de conocimiento
-        retrieval = await context.deps.retriever.retrieve(
+        retrieval = await context.deps.knowledge_service.retrieve(
             limit=10,
             query=query,
             source_id="employees",
@@ -238,7 +238,7 @@ def register_devices_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval_limit = max(len(valid_ips), len(valid_macs), len(normalized_serial_numbers), 1) if qdrant_filter else 5
 
         # Llamada a la base de conocimiento
-        retrieval = await context.deps.retriever.retrieve(
+        retrieval = await context.deps.knowledge_service.retrieve(
             limit=retrieval_limit,
             query=retrieval_query,
             source_id="devices",
@@ -301,7 +301,7 @@ def register_articles_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
         retrieval_limit = max(len(valid_ids), 1) if qdrant_filter else 50
 
         # Llamada a la base de conocimiento
-        retrieval = await context.deps.retriever.retrieve(
+        retrieval = await context.deps.knowledge_service.retrieve(
             limit=retrieval_limit,
             query=retrieval_query,
             source_id="articles",
@@ -343,7 +343,7 @@ def register_manuals_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             No uses referencias ambiguas como "el anterior", "esa herramienta" o "ese programa".
         """
         # Llamada a la base de conocimiento
-        retrieval = await context.deps.retriever.retrieve(
+        retrieval = await context.deps.knowledge_service.retrieve(
             limit=5,
             query=query,
             source_id="manuals",
@@ -379,7 +379,7 @@ def register_tickets_retrieval_tool(agent: Agent[AgentDeps, str]) -> None:
             No uses referencias ambiguas como "el anterior", "esa herramienta" o "ese programa".
         """
         # Llamada a la base de conocimiento
-        retrieval = await context.deps.retriever.retrieve(
+        retrieval = await context.deps.knowledge_service.retrieve(
             limit=3,
             query=query,
             source_id="tickets",

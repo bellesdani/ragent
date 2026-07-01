@@ -18,8 +18,8 @@ API_DESCRIPTION = (
 def create_app() -> FastAPI:
     # Cargamos las variables de entorno como settings y los principales servicios
     settings = get_settings()
-    agent_service = AgentService(settings)
-    knowledge_service = KnowledgeSourceService(settings, agent_service)
+    knowledge_service = KnowledgeSourceService(settings)
+    agent_service = AgentService(settings, knowledge_service)
 
     # Construimos la app y guardamos los settings y principales servicios como estado de la app
     app = FastAPI(

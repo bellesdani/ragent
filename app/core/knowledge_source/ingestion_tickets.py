@@ -5,8 +5,7 @@ from typing import Optional
 from datetime import datetime
 from app.config import Settings
 from qdrant_client import models
-from app.core.agent.service import AgentService
-from app.core.chat.entities import ChatResult, ChatMessage
+from app.core.agent.summarizer_service import SummarizerService
 from app.core.knowledge_source.ingestion_abc import KnowledgeSourceIngestor
 from app.core.knowledge_source.entities import KnowledgeSourceDefinition, TicketArticleRow, TicketArticle, Ticket
 
@@ -23,12 +22,12 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
      - Añadir datos de tickets a la fuente de conocimiento (upsert_knowledge_source_data).
     """
 
-    def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition, agent_service: AgentService) -> None:
+    def __init__(self, settings: Settings, knowledge_source: KnowledgeSourceDefinition, summarizer_service: SummarizerService) -> None:
         super().__init__(
             settings=settings,
             knowledge_source=knowledge_source,
         )
-        self.agent_service = agent_service
+        self.summarizer_service = summarizer_service
 
 
     async def create_knowledge_source(self):
@@ -248,20 +247,11 @@ class TicketsKnowledgeSourceIngestor(KnowledgeSourceIngestor):
     
 
     async def _build_semantic_content(self, content: str):
-        result: ChatResult = await self.agent_service.complete_chat(
-            model="Summarizer",
-            messages=[
-                ChatMessage(
-                    content=content,
-                    role='user',
-                    name='',
-                ),
-            ],
-            max_tokens=400,
+        return await self.summarizer_service.summarize(
+            content=content,
             temperature=0.2,
+            max_tokens=400,
         )
-
-        return result.content
     
     
     def _build_ticket_metadata(self, ticket: Ticket):
