@@ -151,10 +151,11 @@ async def search_knowledge_source(
     knowledge_service: KnowledgeSourceService = Depends(get_knowledge_service),
 ) -> KnowledgeSourceSearchResponse | JSONResponse:
     try:
-        retrieval = await knowledge_service.search_knowledge_source(
-            knowledge_source_id=knowledge_source_id,
+        retrieval = await knowledge_service.retrieve(
+            source_id=knowledge_source_id,
             query=search_request.query,
             limit=search_request.limit,
+            query_filter=None
         )
         items = [
             KnowledgeSourceSearchItem.model_validate(document.model_dump())

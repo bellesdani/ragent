@@ -57,14 +57,6 @@ class KnowledgeSourceService:
         return await ingestor.upsert_knowledge_source_data(data)
 
 
-    async def search_knowledge_source(self, knowledge_source_id: str, query: str, limit: int) -> RetrievedContext:
-        return await self.retrieve(
-            query=query,
-            limit=limit,
-            source_id=knowledge_source_id,
-        )
-
-
     async def retrieve(self, query: str, limit: int, source_id: str, query_filter: Filter | None = None) -> RetrievedContext:
         cleaned_query = query.strip()
         if not cleaned_query:
