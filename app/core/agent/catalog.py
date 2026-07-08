@@ -11,6 +11,7 @@ class AgentCatalog:
 
     Funciones públicas:
      - Listar los agentes publicados (list_public_agents).
+     - Listar todos los agentes definidos (list_agents).
      - Obtener un agente por identificador (get_agent).
     """
 
@@ -24,6 +25,7 @@ class AgentCatalog:
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
                 system_prompt=prompt_service.load_prompt("quipi_system.md"),
+                system_prompt_file="quipi_system.md",
                 enable_tools=True,
                 public=True,
             ),
@@ -35,6 +37,7 @@ class AgentCatalog:
                 backend_api_key=settings.chat_api_key,
                 backend_chat_model=settings.chat_model,
                 system_prompt=prompt_service.load_prompt("base_system.md"),
+                system_prompt_file="base_system.md",
                 enable_tools=False,
                 public=False,
             ),
@@ -43,10 +46,14 @@ class AgentCatalog:
 
     def list_public_agents(self) -> list[AgentDefinition]:
         return [
-            agent  
+            agent
             for agent in self._agents.values()
             if agent.public
         ]
+
+
+    def list_agents(self) -> list[AgentDefinition]:
+        return list(self._agents.values())
 
 
     def get_agent(self, agent_id: str) -> AgentDefinition:

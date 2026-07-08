@@ -22,6 +22,7 @@ class AgentService:
     
     Funciones públicas:
      - Listar los agentes publicados (list_public_agents).
+     - Listar todos los agentes definidos (list_agents).
      - Realizar un chat completion con un agente concreto (complete_chat).
     """
 
@@ -39,6 +40,10 @@ class AgentService:
 
     def list_public_agents(self) -> list[AgentDefinition]:
         return self.agent_catalog.list_public_agents()
+
+
+    def list_agents(self) -> list[AgentDefinition]:
+        return self.agent_catalog.list_agents()
 
 
     async def complete_chat(self, model: str, messages: list[ChatMessage], temperature: float | None, max_tokens: int | None) -> ChatResult:

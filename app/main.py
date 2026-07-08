@@ -1,7 +1,10 @@
+from pathlib import Path
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from app.config import get_settings
 from app.core.agent.service import AgentService
-from app.api.routers import agent, health, knowledge
+from app.api.routers import admin, agent, health, knowledge
 from app.core.knowledge_source.service import KnowledgeSourceService
 
 
@@ -30,10 +33,23 @@ def create_app() -> FastAPI:
     app.state.agent_service = agent_service
     app.state.knowledge_service = knowledge_service
 
-    # Construimos los routers 
+    # Construimos los routers
     app.include_router(agent.router)
     app.include_router(health.router)
     app.include_router(knowledge.router)
+    app.include_router(admin.router)
+
+    # Publicamos el panel de administración como ficheros estáticos en /ui
+    app.mount(
+        path="/ui",
+        app=StaticFiles(directory=Path(__file__).resolve().parent / "static", html=True),
+        name="ui",
+    )
+
+    @app.get("/", include_in_schema=False)
+    async def redirect_to_ui() -> RedirectResponse:
+        return RedirectResponse(url="/ui/")
+
     return app
 
 

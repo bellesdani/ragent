@@ -16,6 +16,21 @@ from app.core.agent.tools import (
 )
 
 
+# Nombres de las herramientas que se registran cuando un agente tiene enable_tools=True.
+# Deben mantenerse alineados con los registros de build().
+RETRIEVAL_TOOL_NAMES = (
+    "search_employees",
+    "search_articles",
+    "search_devices",
+    "search_manuals",
+    "search_tickets",
+)
+UTILITY_TOOL_NAMES = (
+    "calculator",
+    "get_current_time",
+)
+
+
 class AgentFactory:
     """
     Esta factoría construye agentes a partir de una definición. Utiliza:

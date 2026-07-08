@@ -88,6 +88,23 @@ La API incluye estas rutas principales:
 
 Los endpoints de `knowledge-source` devuelven respuestas con `status`, `operation` y `result`. Cuando la operación está asociada a una fuente concreta, también incluyen `knowledge_source_id`. En caso de error devuelven `status="error"` y un objeto `error` con `code`, `message` y, cuando aplica, `details`.
 
+## Panel de administración
+
+RAGent publica un panel de administración web en `/ui` (la raíz `/` redirige a él). El panel es estático (HTML, CSS y JavaScript sin dependencias) y vive en `app/static`.
+
+Desde el panel se puede:
+
+- Ver el estado del servicio, de Qdrant y del conocimiento indexado (vista general).
+- Consultar las definiciones de agentes del catálogo, con su prompt y sus herramientas.
+- Revisar la configuración de cada fuente de conocimiento y crear su colección.
+- Ingerir datos desde JSON (con un ejemplo precargado que cambia según la fuente elegida) o subir un manual HTML.
+- Lanzar búsquedas directas sobre una fuente y examinar el contenido y la metadata de cada documento recuperado.
+
+El panel se apoya en dos endpoints de soporte:
+
+- `GET /admin/overview`: estado del servicio, del backend de chat, de Qdrant y de las colecciones de cada fuente.
+- `GET /admin/agents`: definiciones completas de los agentes del catálogo (públicos e internos).
+
 ## Configuración
 
 Crea un `.env` a partir de `.env.example` y ajusta los valores a tu entorno real.
