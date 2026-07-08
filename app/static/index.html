@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAGent · Panel de administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="layout">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">R</div>
+      <div class="brand-text">
+        <div class="brand-name">RAGent</div>
+        <div class="brand-sub">Panel de administración</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Operación</div>
+      <a class="nav-item" data-view="overview" href="#/overview">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Vista general
+      </a>
+      <a class="nav-item" data-view="agents" href="#/agents">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>
+        Agentes
+      </a>
+      <div class="nav-section">Conocimiento</div>
+      <a class="nav-item" data-view="sources" href="#/sources">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.6 3.6 3 8 3s8-1.4 8-3V5"/><path d="M4 12c0 1.6 3.6 3 8 3s8-1.4 8-3"/></svg>
+        Fuentes
+      </a>
+      <a class="nav-item" data-view="ingest" href="#/ingest">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>
+        Ingesta
+      </a>
+      <a class="nav-item" data-view="search" href="#/search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        Búsqueda
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="qdrant-chip" id="qdrant-chip">
+        <span class="status-dot" id="qdrant-dot"></span>
+        <div class="qdrant-chip-text">
+          <div class="qdrant-chip-title" id="qdrant-status-label">Qdrant</div>
+          <div class="qdrant-chip-sub mono" id="qdrant-url-label">—</div>
+        </div>
+      </div>
+      <div class="version mono" id="version-label">ragent</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb"><span id="crumb-section">Operación</span> <span class="crumb-sep">/</span> <span class="crumb-current" id="crumb-title">Vista general</span></div>
+      <div class="topbar-right">
+        <span class="chip chip-health mono" id="health-chip">GET /health · …</span>
+        <span class="chip chip-host" id="host-chip"></span>
+      </div>
+    </header>
+
+    <div class="content" id="content">
+
+      <!-- ============ VISTA GENERAL ============ -->
+      <section class="view" id="view-overview">
+        <div class="view-header">
+          <h1>Vista general</h1>
+          <p>Estado del servicio, del almacén vectorial y del conocimiento indexado.</p>
+        </div>
+        <div class="stat-grid" id="overview-cards"></div>
+        <div class="overview-columns">
+          <div class="card table-card" id="overview-sources-card">
+            <div class="card-header">
+              <h2>Fuentes de conocimiento</h2>
+              <span class="card-header-note" id="overview-sources-note"></span>
+            </div>
+            <div id="overview-sources-table"></div>
+          </div>
+          <div class="card" id="overview-activity-card">
+            <div class="card-header"><h2>Actividad reciente</h2></div>
+            <div class="activity-list" id="activity-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ AGENTES ============ -->
+      <section class="view" id="view-agents" hidden>
+        <div class="view-header">
+          <h1>Agentes</h1>
+          <p>Definiciones publicadas sobre el mismo proveedor y modelo base.</p>
+        </div>
+        <div class="master-detail">
+          <div class="master-list" id="agents-list"></div>
+          <div class="card detail-panel" id="agent-detail"></div>
+        </div>
+      </section>
+
+      <!-- ============ FUENTES ============ -->
+      <section class="view" id="view-sources" hidden>
+        <div class="view-header">
+          <h1>Fuentes de conocimiento</h1>
+          <p>Colecciones de Qdrant, sus claves de payload y su estrategia de recuperación.</p>
+        </div>
+        <div class="master-detail">
+          <div class="master-list master-list-narrow" id="sources-list"></div>
+          <div class="card detail-panel" id="source-detail"></div>
+        </div>
+      </section>
+
+      <!-- ============ INGESTA ============ -->
+      <section class="view" id="view-ingest" hidden>
+        <div class="view-header">
+          <h1>Ingesta</h1>
+          <p>Añade o actualiza puntos en una fuente desde JSON estructurado o desde un manual HTML.</p>
+        </div>
+        <div class="ingest-columns">
+          <!-- from json -->
+          <div class="card ingest-card">
+            <div class="card-title-row">
+              <h2>Desde JSON</h2>
+              <span class="badge badge-endpoint mono">POST · from-json</span>
+            </div>
+            <p class="card-sub" id="ingest-json-hint">Lista JSON de objetos.</p>
+            <div class="chip-row">
+              <span class="chip-row-label">Fuente</span>
+              <div class="chip-group" id="ingest-source-chips"></div>
+            </div>
+            <textarea class="json-editor mono" id="ingest-json-editor" spellcheck="false" placeholder="[ … ]"></textarea>
+            <div class="ingest-footer">
+              <span class="ingest-status" id="ingest-json-status"></span>
+              <div class="ingest-actions">
+                <button class="btn btn-ghost" id="ingest-load-example">Cargar ejemplo</button>
+                <button class="btn btn-primary" id="ingest-json-submit">Insertar puntos</button>
+              </div>
+            </div>
+          </div>
+          <!-- from html -->
+          <div class="card ingest-card">
+            <div class="card-title-row">
+              <h2>Desde HTML</h2>
+              <span class="badge badge-endpoint mono">POST · from-html</span>
+            </div>
+            <p class="card-sub">Manual HTML convertido a bloques de texto e imagen. Solo para la fuente <b>manuals</b>.</p>
+            <div class="dropzone" id="html-dropzone">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>
+              <div class="dropzone-text">
+                <div class="dropzone-title">Arrastra un fichero .html</div>
+                <div class="dropzone-sub">o haz clic para seleccionarlo</div>
+              </div>
+              <input type="file" id="html-file-input" accept=".html,.htm,text/html" hidden>
+            </div>
+            <div class="file-chip" id="html-file-chip" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+              <div class="file-chip-info">
+                <div class="file-chip-name mono" id="html-file-name"></div>
+                <div class="file-chip-meta" id="html-file-meta"></div>
+              </div>
+              <button class="file-chip-remove" id="html-file-remove" title="Quitar fichero">×</button>
+            </div>
+            <div class="ingest-footer ingest-footer-end">
+              <button class="btn btn-primary" id="ingest-html-submit" disabled>Subir manual</button>
+            </div>
+          </div>
+        </div>
+        <!-- last result -->
+        <div class="card" id="ingest-result-card" hidden>
+          <div class="card-header">
+            <h2>Última ingesta</h2>
+            <span class="badge" id="ingest-result-badge"></span>
+          </div>
+          <div class="ingest-result-body">
+            <div class="ingest-result-count">
+              <div class="ingest-result-number mono" id="ingest-result-points">0</div>
+              <div class="ingest-result-caption">puntos</div>
+            </div>
+            <div class="codeblock" id="ingest-result-json"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ BÚSQUEDA ============ -->
+      <section class="view" id="view-search" hidden>
+        <div class="view-header">
+          <h1>Búsqueda directa</h1>
+          <p>Retrieval sobre Qdrant sin generar respuesta conversacional.</p>
+        </div>
+        <div class="card search-bar">
+          <div class="chip-row search-source-row">
+            <span class="chip-row-label">Fuente</span>
+            <div class="chip-group" id="search-source-chips"></div>
+          </div>
+          <div class="search-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+            <input type="text" id="search-query" placeholder="Escribe una consulta, por ejemplo: el portátil no arranca tras la actualización">
+          </div>
+          <span class="badge badge-retrieval" id="search-retrieval-badge">hybrid</span>
+          <div class="stepper">
+            <button id="search-limit-dec" title="Menos resultados">−</button>
+            <span class="mono" id="search-limit">5</span>
+            <button id="search-limit-inc" title="Más resultados">+</button>
+          </div>
+          <button class="btn btn-primary" id="search-submit">Buscar</button>
+        </div>
+        <div class="search-results" id="search-results" hidden>
+          <div class="search-results-list-col">
+            <div class="search-results-meta" id="search-results-meta"></div>
+            <div class="master-list" id="search-results-list"></div>
+          </div>
+          <div class="card detail-panel" id="search-result-detail"></div>
+        </div>
+        <div class="empty-state" id="search-empty">
+          <p>Elige una fuente, escribe una consulta y pulsa <b>Buscar</b> para ver los documentos recuperados.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ class AgentDefinition:
     system_prompt: str
     enable_tools: bool
     public: bool
+    system_prompt_file: str | None = None
 
 
 @dataclass
